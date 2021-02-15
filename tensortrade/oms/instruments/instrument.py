@@ -143,11 +143,15 @@ DAI = Instrument('DAI', 8, 'Dai')
 USDT = Instrument('USDT', 8, 'Tether')
 
 # FX
+"""
 USD = Instrument('USD', 2, 'U.S. Dollar')
 EUR = Instrument('EUR', 2, 'Euro')
 JPY = Instrument('JPY', 2, 'Japanese Yen')
 KWN = Instrument('KWN', 2, 'Korean Won')
 AUD = Instrument('AUD', 2, 'Australian Dollar')
+"""
+USD = Instrument('USD', 2, 'U.S. Dollar')
+EURUSD = Instrument('EURUSD', 5, 'EURUSD')
 
 # Commodities
 XAU = Instrument('XAU', 2, 'Gold futures')

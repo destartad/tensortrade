@@ -27,6 +27,7 @@ from collections import OrderedDict
 
 
 WalletType = TypeVar("WalletType", Wallet, Tuple[Exchange, Instrument, float])
+PositionType = TypeVar("PositionType", Position, Tuple[Exchange, Instrument, float])
 
 
 class Portfolio(Component, TimedIdentifiable):
@@ -49,19 +50,26 @@ class Portfolio(Component, TimedIdentifiable):
     def __init__(self,
                  base_instrument: Instrument,
                  wallets: List[WalletType] = None,
+                 positions: List[PositionType] = None,
                  order_listener: 'OrderListener' = None,
                  performance_listener: Callable[[OrderedDict], None] = None):
         super().__init__()
 
+        #Order to change positions
         wallets = wallets or []
+        positions = positions or []
 
         self.base_instrument = self.default('base_instrument', base_instrument)
         self.order_listener = self.default('order_listener', order_listener)
         self.performance_listener = self.default('performance_listener', performance_listener)
         self._wallets = {}
+        self._positions = {}
 
         for wallet in wallets:
             self.add(wallet)
+
+        for position in positions:
+            self.add(position)
 
         self._initial_balance = self.base_balance
         self._initial_net_worth = None
@@ -69,10 +77,26 @@ class Portfolio(Component, TimedIdentifiable):
         self._performance = None
         self._keys = None
 
+        #TODO: calculation sum of open postion - margin/profit/swap/commission
+        self._current_balanace = _initial_balance
+        self._equity = _initial_balance
+        self._margin = None
+        self._free_margin = self._initial_balance
+        self._margin_level = self._equity/self._margin
+    
+    @property
+    def current_balance(self):
+        return [position.balance for position in self._positions.values()]
+
     @property
     def wallets(self) -> 'List[Wallet]':
         """All the wallets in the portfolio. (`List[Wallet]`, read-only)"""
         return list(self._wallets.values())
+
+    @property
+    def positions(self) -> 'List[Position]':
+        """All the positions in the portfolio. (`List[Position]`, read-only)"""
+        return list(self._positions.values())
 
     @property
     def exchanges(self) -> 'List[Exchange]':
@@ -81,6 +105,9 @@ class Portfolio(Component, TimedIdentifiable):
         for w in self.wallets:
             if w.exchange not in exchanges:
                 exchanges += [w.exchange]
+        for p in self.positions:
+            if p.exchange not in exchanges:
+                exchanges += [p.exchange]
         return exchanges
 
     @property
@@ -95,6 +122,9 @@ class Portfolio(Component, TimedIdentifiable):
         for w in self.wallets:
             if w.instrument != self.base_instrument:
                 exchange_pairs += [ExchangePair(w.exchange, self.base_instrument/w.instrument)]
+        for p in self.positions:
+            if p.instrument != self.base_instrument:
+                exchange_pairs += [ExchangePair(p.exchange, self.base_instrument/p.instrument)]
         return exchange_pairs
 
     @property
@@ -105,7 +135,7 @@ class Portfolio(Component, TimedIdentifiable):
     @property
     def base_balance(self) -> 'Quantity':
         """The current balance of the base instrument over all wallets. (`Quantity`, read-only)"""
-        return self.balance(self.base_instrument)
+        return self.balance(self.base_instrument) #
 
     @property
     def initial_net_worth(self) -> float:
@@ -141,6 +171,16 @@ class Portfolio(Component, TimedIdentifiable):
     def total_balances(self) -> 'List[Quantity]':
         """The current total balance of each instrument over all wallets. (`List[Quantity]`, read-only)"""
         return [wallet.total_balance for wallet in self._wallets.values()]
+    @property
+    def margin(self) -> float:
+        return get_all_margin()
+        
+    def get_all_margin(self):
+        """calculate margin for all open positions"""
+        for p in self._positions.items():
+            margin += p._margin
+        return margin
+
 
     def balance(self, instrument: Instrument) -> 'Quantity':
         """Gets the total balance of the portfolio in a specific instrument

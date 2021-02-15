@@ -44,7 +44,7 @@ class Order(TimedIdentifiable, Observable):
     Responsibilities of the Order:
         1. Confirming its own validity.
         2. Tracking its trades and reporting it back to the broker.
-        3. Managing movement of quantities from order to order. ---TODO
+        3. Managing movement of quantities from order to order.
         4. Generating the next order in its path given that there is a
            'OrderSpec' for how to make the next order.
         5. Managing its own state changes when it can.
@@ -122,7 +122,7 @@ class Order(TimedIdentifiable, Observable):
 
         if self.path_id not in wallet.locked.keys():
             self.quantity = wallet.lock(quantity, self, "LOCK FOR ORDER")
-        
+
         self.remaining = self.quantity
 
     @property
