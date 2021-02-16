@@ -3,7 +3,7 @@ import pandas as pd
 import ta
 
 from tensortrade.feed.core import Stream, DataFeed, NameSpace
-from tensortrade.oms.instruments import USD, EUR
+from tensortrade.oms.instruments import USD, EURUSD
 from tensortrade.oms.wallets import Wallet, Portfolio
 from tensortrade.oms.exchanges import Exchange
 from tensortrade.oms.services.execution.simulated import execute_order
@@ -43,7 +43,7 @@ minute_EURUSD.drop(columns=['open_time'], inplace=True)
 
 
 simYunHe = Exchange("simYunhe", service=execute_order)(
-    Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-EUR")
+    Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-EURUSD")
 )
 
 ################
@@ -66,7 +66,7 @@ feed = DataFeed(minute_EURUSD_streams)
 
 portfolio = Portfolio(USD, [
     Wallet(simYunHe, 10000 * USD),
-    Wallet(simYunHe, 0 * EUR)
+    Wallet(simYunHe, 0 * EURUSD)
     ])
 
 renderer_feed = DataFeed([
@@ -98,10 +98,17 @@ env = default.create(
 #%%run agent
 from tensortrade.agents import DQNAgent
 
+done = False
+obs = env.reset()
+while not done:
+    action = env.action_space.sample()
+    obs, reward, done, info = env.step(action)
 
+
+'''
 agent = DQNAgent(env)
 agent.train(n_steps=200, n_episodes=2, render_interval=10)
-
+'''
 '''
 from tensorforce.agents import Agent
 

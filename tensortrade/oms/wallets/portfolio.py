@@ -22,6 +22,7 @@ from tensortrade.oms.exchanges import Exchange
 from tensortrade.oms.orders import OrderListener
 from tensortrade.oms.instruments import Instrument, Quantity, ExchangePair
 from tensortrade.oms.wallets.wallet import Wallet
+from tensortrade.oms.wallets.position import Position
 from tensortrade.oms.wallets.ledger import Ledger
 from collections import OrderedDict
 
@@ -78,12 +79,13 @@ class Portfolio(Component, TimedIdentifiable):
         self._keys = None
 
         #TODO: calculation sum of open postion - margin/profit/swap/commission
-        self._current_balanace = _initial_balance
-        self._equity = _initial_balance
+        self._current_balanace = self._initial_balance
+        self._equity = self._initial_balance.size
         self._margin = None
         self._free_margin = self._initial_balance
-        self._margin_level = self._equity/self._margin
-    
+        """if self._margin != None
+            self._margin_level = self._equity/self._margin
+        """
     @property
     def current_balance(self):
         return [position.balance for position in self._positions.values()]
