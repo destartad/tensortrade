@@ -158,6 +158,11 @@ class Order(TimedIdentifiable, Observable):
         return self.side == TradeSide.SELL
 
     @property
+    def is_close(self) -> bool:
+        """If this is a close order. (bool, read-only)"""
+        return self.side == TradeSide.CLOSE
+
+    @property
     def is_limit_order(self) -> bool:
         """If this is a limit order. (bool, read-only)"""
         return self.type == TradeType.LIMIT

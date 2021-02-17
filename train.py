@@ -4,9 +4,9 @@ import ta
 
 from tensortrade.feed.core import Stream, DataFeed, NameSpace
 from tensortrade.oms.instruments import USD, EURUSD
-from tensortrade.oms.wallets import Wallet, Portfolio
+from tensortrade.oms.wallets import Wallet, Portfolio, Position
 from tensortrade.oms.exchanges import Exchange
-from tensortrade.oms.services.execution.simulated import execute_order
+from tensortrade.oms.services.execution.simulated_MT4 import execute_order
 
 ##############
 #Manipulate data: 
@@ -82,16 +82,17 @@ renderer_feed = DataFeed([
 #Env
 ###################
 
-import tensortrade.env.default as default
+import tensortrade.env.MT4 as mt4
 
-env = default.create(
+env = mt4.create(
+    exchange=simYunHe,
     portfolio=portfolio,
-    action_scheme="simple", #TODO: override with own action
+    action_scheme="mt4", #TODO: override with own action
     reward_scheme="simple", #TODO: override with own reward
     feed=feed,
     window_size=15,
     renderer_feed=renderer_feed,
-    renderer=default.renderers.PlotlyTradingChart(),  
+    renderer="screen-log"
     )
 
 

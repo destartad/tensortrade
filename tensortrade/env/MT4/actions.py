@@ -382,10 +382,120 @@ class ManagedRiskOrders(TensorTradeActionScheme):
 
         return [order]
 
+class SimpleOrders_mt4(TensorTradeActionScheme):
+    """A discrete action scheme that determines actions based on a list of
+    trading pairs, order criteria, and trade sizes.
+
+    Parameters
+    ----------
+    criteria : List[OrderCriteria]
+        A list of order criteria to select from when submitting an order.
+        (e.g. MarketOrder, LimitOrder w/ price, StopLoss, etc.)
+    trade_sizes : List[float]
+        A list of trade sizes to select from when submitting an order.
+        (e.g. '[1, 1/3]' = 100% or 33% of balance is tradable.
+        '4' = 25%, 50%, 75%, or 100% of balance is tradable.)
+    durations : List[int]
+        A list of durations to select from when submitting an order.
+    trade_type : TradeType
+        A type of trade to make.
+    order_listener : OrderListener
+        A callback class to use for listening to steps of the order process.
+    """
+
+    def __init__(self,
+                 criteria: 'Union[List[OrderCriteria], OrderCriteria]' = None,
+                 trade_sizes: 'Union[List[float], int]' = 10,
+                 durations: 'Union[List[int], int]' = None,
+                 trade_type: 'TradeType' = TradeType.MARKET,
+                 order_listener: 'OrderListener' = None,
+                 min_order_pct: float = 0.02) -> None:
+        super().__init__()
+        self.min_order_pct = min_order_pct
+        criteria = self.default('criteria', criteria)
+        self.criteria = criteria if isinstance(criteria, list) else [criteria]
+
+        trade_sizes = self.default('trade_sizes', trade_sizes)
+        if isinstance(trade_sizes, list):
+            self.trade_sizes = trade_sizes
+        else:
+            self.trade_sizes = [(x + 1) / trade_sizes for x in range(trade_sizes)]
+
+        durations = self.default('durations', durations)
+        self.durations = durations if isinstance(durations, list) else [durations]
+
+        self._trade_type = self.default('trade_type', trade_type)
+        self._order_listener = self.default('order_listener', order_listener)
+
+        self._action_space = None
+        self.actions = None
+
+    @property
+    def action_space(self) -> Space:
+        if not self._action_space:
+            self.actions = product(
+                [TradeSide.BUY, TradeSide.SELL],
+                self.criteria,
+                self.trade_sizes,
+                self.durations
+            )
+            self.actions = list(self.actions)
+            x = (TradeSide.CLOSE,None,None,None)
+            #print(type(x))
+            self.actions.append(x)
+            #print(self.actions)
+            self.actions = list(product(self.portfolio.exchange_pairs, self.actions))
+            self.actions = [None] + self.actions
+            self._action_space = Discrete(len(self.actions))
+        return self._action_space
+
+    def get_orders(self, 
+                   action: int, 
+                   portfolio: 'Portfolio') -> 'List[Order]':
+        
+        if action == 0:
+            return []
+
+        (ep, (criteria, proportion, duration, side)) = self.actions[action]
+
+        instrument = side.instrument(ep.pair)
+        wallet = portfolio.get_wallet(ep.exchange.id, instrument=instrument)
+
+        # balance = wallet.balance.as_float()
+        # size = (balance * proportion)
+        # size = min(balance, size)
+
+        size = proportion
+
+        quantity = (size * instrument).quantize()
+
+        price = ep.price
+        value = size*float(price)
+        if size < 10 ** -instrument.precision \
+                or value < self.min_order_pct*portfolio.net_worth:
+            return []
+
+        order = Order(
+            step=self.clock.step,
+            side=side,
+            trade_type=self._trade_type,
+            exchange_pair=ep,
+            price=ep.price,
+            quantity=quantity,
+            criteria=criteria,
+            end=self.clock.step + duration if duration else None,
+            portfolio=portfolio
+        )
+
+        if self._order_listener is not None:
+            order.attach(self._order_listener)
+
+        return [order]    
 
 _registry = {
     'simple': SimpleOrders,
     'managed-risk': ManagedRiskOrders,
+    'mt4': SimpleOrders_mt4
 }
 
 

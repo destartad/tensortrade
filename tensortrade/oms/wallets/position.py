@@ -18,7 +18,8 @@ from decimal import Decimal
 
 import numpy as np
 
-from tensortrade.core import Identifiable
+from tensortrade.core import Identifiable,TimedIdentifiable
+
 from tensortrade.core.exceptions import (
     InsufficientFunds,
     DoubleLockedQuantity,
@@ -34,26 +35,57 @@ from tensortrade.oms.wallets.ledger import Ledger
 Transfer = namedtuple("Transfer", ["quantity", "commission", "price"])
 
 
-class Position(Identifiable):
+class Position(TimedIdentifiable):
     """A position stores the balance of a specific instrument on a specific exchange.
 
     Parameters
     ----------
     exchange : `Exchange`
-        The exchange associated with this wallet.
+        The exchange associated with this position.
     balance : `Quantity`
-        The initial balance quantity for the wallet.
+        The initial balance quantity for the postion.
     """
 
     ledger = Ledger()
 
-    def __init__(self, exchange: 'Exchange', balance: 'Quantity'):
+    def __init__(self, exchange: 'Exchange', balance: 'Quantity', side, executed_price):
         self.exchange = exchange
-        self._initial_size = balance.size
+        self.current_price = exchange.quote_price
+        self.side = side
         self.instrument = balance.instrument
-        self.balance = balance.quantize()
+        self.size = balance.size()
+        self.executed_price = executed_price
         self._locked = {}
 
+    @property
+    def evaluated_price(self):
+        if self.side == "BUY":
+            _evaluated_price = self.current_price - self.instrument.spread 
+        else:
+            _evaluated_price = self.current_price + self.instrument.spread
+        return _evaluated_price
+        
+    """
+    TODO: swap
+    @property
+    def swap(self) : 
+        return _swap
+
+    @swap.setter(self):
+    def swap(self,self.clock):
+        return _swap
+    """
+
+    @property
+    def margin(self):
+        _margin = self.executed_price * instrument.contract_size * self.size / exchange.options.leverage
+        return _margin
+
+    @property
+    def profit(self):
+        _profit = (self.current_price - self.executed_price) * self.size * self.instrument.contract_size
+        return _profit
+    
     @property
     def locked_balance(self) -> 'Quantity':
         """The total balance of the wallet locked in orders. (`Quantity`, read-only)"""

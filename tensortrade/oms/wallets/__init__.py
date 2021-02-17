@@ -1,4 +1,5 @@
 from .wallet import Wallet
+from .position import Position
 from .portfolio import Portfolio
 
 

@@ -36,10 +36,14 @@ class Instrument:
         The name of the instrument being created.
     """
 
-    def __init__(self, symbol: str, precision: int, name: str = None) -> None:
+    def __init__(self, symbol: str, precision: int, name: str = None, swap_long: float = 0.00, swap_short: float = 0.00, spread: int = 340, contract_size: int = 100000) -> None:
         self.symbol = symbol
         self.precision = precision
         self.name = name
+        self.swap_long = swap_long
+        self.swap_short = swap_short
+        self.spread = spread
+        self.contract_size = contract_size
 
         registry[symbol] = self
 
@@ -127,7 +131,7 @@ class Instrument:
     def __repr__(self):
         return str(self)
 
-
+"""
 # Crypto
 BTC = Instrument('BTC', 8, 'Bitcoin')
 ETH = Instrument('ETH', 8, 'Ethereum')
@@ -141,7 +145,7 @@ LINK = Instrument('LINK', 8, 'Chainlink')
 ATOM = Instrument('ATOM', 8, 'Cosmos')
 DAI = Instrument('DAI', 8, 'Dai')
 USDT = Instrument('USDT', 8, 'Tether')
-
+"""
 # FX
 """
 USD = Instrument('USD', 2, 'U.S. Dollar')
@@ -150,9 +154,9 @@ JPY = Instrument('JPY', 2, 'Japanese Yen')
 KWN = Instrument('KWN', 2, 'Korean Won')
 AUD = Instrument('AUD', 2, 'Australian Dollar')
 """
-USD = Instrument('USD', 2, 'U.S. Dollar')
-EURUSD = Instrument('EURUSD', 5, 'EURUSD')
-
+USD = Instrument('USD', 2, 'U.S. Dollar', 0.00, 0.00)
+EURUSD = Instrument('EURUSD', 5, 'EURUSD', -10.0, -6.7, 340)
+"""
 # Commodities
 XAU = Instrument('XAU', 2, 'Gold futures')
 XAG = Instrument('XAG', 2, 'Silver futures')
@@ -163,3 +167,4 @@ AAPL = Instrument('AAPL', 2, 'Apple stock')
 MSFT = Instrument('MSFT', 2, 'Microsoft stock')
 TSLA = Instrument('TSLA', 2, 'Tesla stock')
 AMZN = Instrument('AMZN', 2, 'Amazon stock')
+"""

@@ -30,6 +30,7 @@ class TradeSide(Enum):
 
     BUY: str = "buy"
     SELL: str = "sell"
+    CLOSE: str = "close"
 
     def instrument(self, pair: "TradingPair") -> "Instrument":
         return pair.base if self == TradeSide.BUY else pair.quote

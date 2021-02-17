@@ -40,17 +40,19 @@ class ExchangeOptions:
     """
 
     def __init__(self,
-                 commission: float = 0.003,
+                 commission: float = 0.00,
                  min_trade_size: float = 1e-6,
                  max_trade_size: float = 1e6,
                  min_trade_price: float = 1e-8,
                  max_trade_price: float = 1e8,
+                 leverage: int = 100,
                  is_live: bool = False):
         self.commission = commission
         self.min_trade_size = min_trade_size
         self.max_trade_size = max_trade_size
         self.min_trade_price = min_trade_price
         self.max_trade_price = max_trade_price
+        self.leverage = leverage
         self.is_live = is_live
 
 
@@ -153,8 +155,7 @@ class Exchange(Component, TimedIdentifiable):
         """
         trade = self._service(
             order=order,
-            base_wallet=portfolio.get_wallet(self.id, order.pair.base),
-            quote_wallet=portfolio.get_wallet(self.id, order.pair.quote),
+            cash_wallet=portfolio.get_wallet(self.id, order.pair.base),
             current_price=self.quote_price(order.pair),
             options=self.options,
             clock=self.clock
