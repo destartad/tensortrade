@@ -456,10 +456,11 @@ class SimpleOrders_mt4(TensorTradeActionScheme):
         if action == 0:
             return []
 
-        (ep, (criteria, proportion, duration, side)) = self.actions[action]
+        (ep, (side, criteria, proportion, duration)) = self.actions[action]
 
-        instrument = side.instrument(ep.pair)
-        wallet = portfolio.get_wallet(ep.exchange.id, instrument=instrument)
+        base_instrument = TradeSide.BUY.instrument(ep.pair)
+        quote_instrument = TradeSide.SELL.instrument(ep.pair)
+        cash_wallet = portfolio.get_wallet(ep.exchange.id, instrument=base_instrument)
 
         # balance = wallet.balance.as_float()
         # size = (balance * proportion)
@@ -467,14 +468,15 @@ class SimpleOrders_mt4(TensorTradeActionScheme):
 
         size = proportion
 
-        quantity = (size * instrument).quantize()
+        quantity = (size * quote_instrument).quantize()
 
         price = ep.price
-        value = size*float(price)
+        #value = size*float(price)
+        """
         if size < 10 ** -instrument.precision \
                 or value < self.min_order_pct*portfolio.net_worth:
             return []
-
+        """
         order = Order(
             step=self.clock.step,
             side=side,

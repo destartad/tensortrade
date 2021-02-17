@@ -155,7 +155,7 @@ class Quantity:
         if exchange_pair.pair.base == self.instrument:
             size = self.size
             return Quantity(self.instrument, min(size, options.max_trade_size), self.path_id)
-
+        size = self.size
         #size = self.size * price
         if size < options.max_trade_size:
             return Quantity(self.instrument, self.size, self.path_id)

@@ -119,10 +119,12 @@ class Order(TimedIdentifiable, Observable):
             self.exchange_pair.exchange.id,
             self.side.instrument(self.exchange_pair.pair)
         )
-
+        
+        """
+        #if order id not in wallet locked keys
         if self.path_id not in wallet.locked.keys():
             self.quantity = wallet.lock(quantity, self, "LOCK FOR ORDER")
-        
+        """
         self.remaining = self.quantity
 
     @property

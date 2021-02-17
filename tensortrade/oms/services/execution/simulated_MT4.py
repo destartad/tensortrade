@@ -10,7 +10,6 @@ from tensortrade.oms.orders import Order, Trade, TradeType, TradeSide
 
 def execute_buy_order(order: 'Order',
                       cash_wallet: 'Wallet',
-                      position: 'Position',
                       current_price: float,
                       options: 'ExchangeOptions',
                       clock: 'Clock') -> 'Trade':
@@ -67,18 +66,24 @@ def execute_buy_order(order: 'Order',
         exchange_pair=order.exchange_pair,
         reason="BUY"
     )
+    
+
+    balance = order.exchange_pair
+
+    position = Position(
+        exchange=exchange
+        balance=self.
+    )
     """
-
-
     trade = Trade(
         order_id=order.id,
         step=clock.step,
         exchange_pair=order.exchange_pair,
         side=TradeSide.BUY,
         trade_type=order.type,
-        quantity=transfer.quantity,
-        price=transfer.price,
-        commission=transfer.commission
+        quantity=quantity,
+        price=current_price,
+        commission=commission
     )
 
     return trade
@@ -241,7 +246,7 @@ def execute_order(order: 'Order',
         The executed trade that was made.
     """
     kwargs = {"order": order,
-              "cash_wallet": base_wallet,
+              "cash_wallet": cash_wallet,
               "current_price": current_price,
               "options": options,
               "clock": clock}
