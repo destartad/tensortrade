@@ -66,15 +66,27 @@ def execute_buy_order(order: 'Order',
         exchange_pair=order.exchange_pair,
         reason="BUY"
     )
+
+    """
+    """create position"""
+    executed_price = current_price + Decimal(quantity.instrument.spread)
+    executed_price = executed_price.quantize(Decimal(10) ** -quantity.instrument.precision)
     
 
-    balance = order.exchange_pair
-
     position = Position(
-        exchange=exchange
-        balance=self.
+        exchange=order.exchange_pair.exchange,
+        current_price=current_price,
+        balance=quantity,
+        side=order.side,
+        executed_price=executed_price
     )
-    """
+    
+    order.portfolio.add(position)
+
+    print(position.evaluated_price)
+
+    #cre
+
     trade = Trade(
         order_id=order.id,
         step=clock.step,

@@ -48,21 +48,23 @@ class Position(TimedIdentifiable):
 
     ledger = Ledger()
 
-    def __init__(self, exchange: 'Exchange', balance: 'Quantity', side, executed_price):
+    def __init__(self, exchange: 'Exchange', balance: 'Quantity', side, executed_price, current_price):
         self.exchange = exchange
-        self.current_price = exchange.quote_price
+        self.current_price = current_price
         self.side = side
         self.instrument = balance.instrument
-        self.size = balance.size()
+        self.size = balance.size
         self.executed_price = executed_price
         self._locked = {}
+        self._margin = self.executed_price * self.instrument.contract_size * self.size / exchange.options.leverage
+        self._profit = (self.current_price - self.executed_price) * self.size * self.instrument.contract_size
 
     @property
     def evaluated_price(self):
-        if self.side == "BUY":
-            _evaluated_price = self.current_price - self.instrument.spread 
+        if self.side.value == "buy":
+            _evaluated_price = self.current_price - Decimal(self.instrument.spread)
         else:
-            _evaluated_price = self.current_price + self.instrument.spread
+            _evaluated_price = self.current_price + Decimal(self.instrument.spread)
         return _evaluated_price
         
     """
@@ -78,10 +80,18 @@ class Position(TimedIdentifiable):
 
     @property
     def margin(self):
-        _margin = self.executed_price * instrument.contract_size * self.size / exchange.options.leverage
+        return _margin
+
+    @margin.setter
+    def margin(self):
+        _margin = self.executed_price * self.instrument.contract_size * self.size / self.exchange.options.leverage
         return _margin
 
     @property
+    def profit(self):
+        return _profit
+    
+    @profit.setter
     def profit(self):
         _profit = (self.current_price - self.executed_price) * self.size * self.instrument.contract_size
         return _profit

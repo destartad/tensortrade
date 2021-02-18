@@ -36,7 +36,7 @@ class Instrument:
         The name of the instrument being created.
     """
 
-    def __init__(self, symbol: str, precision: int, name: str = None, swap_long: float = 0.00, swap_short: float = 0.00, spread: int = 340, contract_size: int = 100000) -> None:
+    def __init__(self, symbol: str, precision: int, name: str = None, swap_long: float = 0.00, swap_short: float = 0.00, spread: float = 0.0340, contract_size: int = 100000) -> None:
         self.symbol = symbol
         self.precision = precision
         self.name = name
@@ -155,7 +155,7 @@ KWN = Instrument('KWN', 2, 'Korean Won')
 AUD = Instrument('AUD', 2, 'Australian Dollar')
 """
 USD = Instrument('USD', 2, 'U.S. Dollar', 0.00, 0.00)
-EURUSD = Instrument('EURUSD', 5, 'EURUSD', -10.0, -6.7, 340)
+EURUSD = Instrument('EURUSD', 5, 'EURUSD', -10.0, -6.7)
 """
 # Commodities
 XAU = Instrument('XAU', 2, 'Gold futures')
