@@ -10,6 +10,7 @@ from tensortrade.oms.orders import Order, Trade, TradeType, TradeSide
 
 def execute_buy_order(order: 'Order',
                       cash_wallet: 'Wallet',
+                      portfolio: 'Portfolio',
                       current_price: float,
                       options: 'ExchangeOptions',
                       clock: 'Clock') -> 'Trade':
@@ -51,10 +52,8 @@ def execute_buy_order(order: 'Order',
     commission = options.commission * filled
     quantity = filled - commission
 
-    executed_price = current_price + Decimal(quantity.instrument.spread)
-    executed_price = executed_price.quantize(Decimal(10) ** -quantity.instrument.precision)
+    executed_price = current_price.quantize(Decimal(10) ** -quantity.instrument.precision)
     
-
     position = Position(
         exchange=order.exchange_pair.exchange,
         current_price=current_price,
@@ -63,7 +62,7 @@ def execute_buy_order(order: 'Order',
         executed_price=executed_price
     )
     
-    order.portfolio.add_position(position)
+    portfolio.add_position(position)
     cash_wallet.update_by_position(position)
 
     trade = Trade(
@@ -211,6 +210,7 @@ def execute_close_order(order: 'Order',
 
 def execute_order(order: 'Order',
                   cash_wallet: 'Wallet',
+                  portfolio: 'Portfolio',
                   current_price: float,
                   options: 'Options',
                   clock: 'Clock') -> 'Trade':
@@ -238,6 +238,7 @@ def execute_order(order: 'Order',
     """
     kwargs = {"order": order,
               "cash_wallet": cash_wallet,
+              "portfolio": portfolio,
               "current_price": current_price,
               "options": options,
               "clock": clock}

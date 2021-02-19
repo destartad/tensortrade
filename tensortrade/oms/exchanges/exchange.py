@@ -124,7 +124,7 @@ class Exchange(Component, TimedIdentifiable):
             The quote price of the specified trading pair, denoted in the core instrument.
         """
         price = Decimal(self._price_streams[str(trading_pair)].value)
-        price = price.quantize(Decimal(10)**-trading_pair.base.precision)
+        price = price.quantize(Decimal(10)**-trading_pair.quote.precision)
         return price
 
     def is_pair_tradable(self, trading_pair: 'TradingPair') -> bool:
@@ -156,6 +156,7 @@ class Exchange(Component, TimedIdentifiable):
         trade = self._service(
             order=order,
             cash_wallet=portfolio.get_wallet(self.id, order.pair.base),
+            portfolio=portfolio,
             current_price=self.quote_price(order.pair),
             options=self.options,
             clock=self.clock

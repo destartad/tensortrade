@@ -376,8 +376,7 @@ class Wallet(Identifiable):
         return Transfer(quantity, commission, exchange_pair.price)
 
     def update_by_position(self, position: 'Position'):
-        self._profit = float(position.profit)
-        self._margin = float(position.margin)
+        self._margin += float(position.margin)
         pass
 
     def reset(self) -> None:

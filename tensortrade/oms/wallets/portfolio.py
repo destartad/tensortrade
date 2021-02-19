@@ -271,16 +271,16 @@ class Portfolio(Component, TimedIdentifiable):
         self._wallets[(wallet.exchange.id, wallet.instrument.symbol)] = wallet
 
     def add_position(self, position: PositionType) -> None:
-        """Adds a wallet to the portfolio.
+        """Adds a position to the portfolio.
 
         Parameters
         ----------
-        wallet : `WalletType`
-            The wallet to add to the portfolio.
+        Position : `PositionType`
+            The position to add to the portfolio.
         """
         if isinstance(position, tuple):
             position = position.from_tuple(position)
-        self._positions[(position.exchange.id, position.instrument.symbol)] = position
+        self._positions[(position.id, position.exchange.id, position.instrument.symbol)] = position
 
 
     def remove_wallet(self, wallet: 'Wallet') -> None:

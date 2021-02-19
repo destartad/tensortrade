@@ -36,7 +36,7 @@ class Instrument:
         The name of the instrument being created.
     """
 
-    def __init__(self, symbol: str, precision: int, name: str = None, swap_long: float = 0.00, swap_short: float = 0.00, spread: float = 0.0340, contract_size: int = 100000) -> None:
+    def __init__(self, symbol: str, precision: int, name: str = None, swap_long: float = 0.00, swap_short: float = 0.00, spread: float = 0.00034, contract_size: int = 100000) -> None:
         self.symbol = symbol
         self.precision = precision
         self.name = name

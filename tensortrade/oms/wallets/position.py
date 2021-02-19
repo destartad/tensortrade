@@ -71,7 +71,7 @@ class Position(TimedIdentifiable):
             _evaluated_price = self.current_price - Decimal(self.instrument.spread)
         else:
             _evaluated_price = self.current_price + Decimal(self.instrument.spread)
-        return _evaluated_price
+        return _evaluated_price.quantize(Decimal(10)**(-self.instrument.precision))
         
     @property
     def margin(self) -> float:
@@ -82,6 +82,24 @@ class Position(TimedIdentifiable):
     def profit(self) -> float:
         _profit = (self.evaluated_price - self._executed_price) * self.size * self.instrument.contract_size
         return _profit.quantize(Decimal(10)**-2)
+
+    @classmethod
+    def from_tuple(cls, position_tuple: 'Tuple[Exchange, Instrument, float]') -> 'Position':
+        """Creates a wallet from a wallet tuple.
+
+        Parameters
+        ----------
+        wallet_tuple : `Tuple[Exchange, Instrument, float]`
+            A tuple containing an exchange, instrument, and amount.
+
+        Returns
+        -------
+        `Wallet`
+            A wallet corresponding to the arguments given in the tuple.
+        """
+        exchange, instrument, balance = position_tuple
+        return cls(exchange, Quantity(instrument, balance))
+
     
     def reset(self) -> None:
         """Resets the position."""
