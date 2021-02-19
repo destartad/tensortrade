@@ -20,7 +20,7 @@ from typing import Callable, Tuple, List, TypeVar
 from tensortrade.core import Component, TimedIdentifiable
 from tensortrade.oms.exchanges import Exchange
 from tensortrade.oms.orders import OrderListener
-from tensortrade.oms.instruments import Instrument, Quantity, ExchangePair
+from tensortrade.oms.instruments import Instrument, Quantity, ExchangePair, USD, EURUSD
 from tensortrade.oms.wallets.wallet import Wallet
 from tensortrade.oms.wallets.position import Position
 from tensortrade.oms.wallets.ledger import Ledger
@@ -67,10 +67,10 @@ class Portfolio(Component, TimedIdentifiable):
         self._positions = {}
 
         for wallet in wallets:
-            self.add(wallet)
+            self.add_wallet(wallet)
 
         for position in positions:
-            self.add(position)
+            self.add_position(position)
 
         self._initial_balance = self.base_balance
         self._initial_net_worth = None
@@ -86,9 +86,6 @@ class Portfolio(Component, TimedIdentifiable):
         """if self._margin != None
             self._margin_level = self._equity/self._margin
         """
-    @property
-    def current_balance(self):
-        return [position.balance for position in self._positions.values()]
 
     @property
     def wallets(self) -> 'List[Wallet]':
@@ -122,11 +119,8 @@ class Portfolio(Component, TimedIdentifiable):
         """All the exchange pairs in the portfolio. (`List[ExchangePair]`, read-only)"""
         exchange_pairs = []
         for w in self.wallets:
-            if w.instrument != self.base_instrument:
-                exchange_pairs += [ExchangePair(w.exchange, self.base_instrument/w.instrument)]
-        for p in self.positions:
-            if p.instrument != self.base_instrument:
-                exchange_pairs += [ExchangePair(p.exchange, self.base_instrument/p.instrument)]
+            #if w.exchage.name == "simYunHe": later implement differnet exchange has different exchange pairs
+            exchange_pairs += [ExchangePair(w.exchange, USD/EURUSD)]
         return exchange_pairs
 
     @property
@@ -137,7 +131,7 @@ class Portfolio(Component, TimedIdentifiable):
     @property
     def base_balance(self) -> 'Quantity':
         """The current balance of the base instrument over all wallets. (`Quantity`, read-only)"""
-        return self.balance(self.base_instrument) #
+        return self.balance(self.base_instrument) 
 
     @property
     def initial_net_worth(self) -> float:
@@ -180,7 +174,7 @@ class Portfolio(Component, TimedIdentifiable):
     def get_all_margin(self):
         """calculate margin for all open positions"""
         for p in self._positions.items():
-            margin += p._margin
+            margin += p.margin
         return margin
 
 
@@ -261,7 +255,10 @@ class Portfolio(Component, TimedIdentifiable):
         """
         return self._wallets[(exchange_id, instrument.symbol)]
 
-    def add(self, wallet: WalletType) -> None:
+    def get_position(self, exchange_id: str, instrument: 'Instrument') -> 'Position':
+        return self._positions[(exchange_id, instrument.symbol)]
+
+    def add_wallet(self, wallet: WalletType) -> None:
         """Adds a wallet to the portfolio.
 
         Parameters
@@ -273,7 +270,20 @@ class Portfolio(Component, TimedIdentifiable):
             wallet = Wallet.from_tuple(wallet)
         self._wallets[(wallet.exchange.id, wallet.instrument.symbol)] = wallet
 
-    def remove(self, wallet: 'Wallet') -> None:
+    def add_position(self, position: PositionType) -> None:
+        """Adds a wallet to the portfolio.
+
+        Parameters
+        ----------
+        wallet : `WalletType`
+            The wallet to add to the portfolio.
+        """
+        if isinstance(position, tuple):
+            position = position.from_tuple(position)
+        self._positions[(position.exchange.id, position.instrument.symbol)] = position
+
+
+    def remove_wallet(self, wallet: 'Wallet') -> None:
         """Removes a wallet from the portfolio.
 
         Parameters
@@ -282,6 +292,16 @@ class Portfolio(Component, TimedIdentifiable):
             The wallet to be removed.
         """
         self._wallets.pop((wallet.exchange.id, wallet.instrument.symbol), None)
+    
+    def remove_position(self, position: 'Position') -> None:
+        """Removes a wallet from the portfolio.
+
+        Parameters
+        ----------
+        wallet : `Wallet`
+            The wallet to be removed.
+        """
+        self._positions.pop((position.exchange.id, position.instrument.symbol), None)
 
     def remove_pair(self, exchange: 'Exchange', instrument: 'Instrument') -> None:
         """Removes a wallet from the portfolio by `exchange` and `instrument`.
@@ -294,6 +314,8 @@ class Portfolio(Component, TimedIdentifiable):
             The instrument of the wallet to be removed.
         """
         self._wallets.pop((exchange.id, instrument.symbol), None)
+        if self._positions:
+            self._positions.pop((exchange.id, instrument.symbol), None)
 
     @staticmethod
     def _find_keys(data: dict) -> 'List[str]':
@@ -346,7 +368,7 @@ class Portfolio(Component, TimedIdentifiable):
         performance_data['base_symbol'] = self.base_instrument.symbol
         performance_step = OrderedDict()
         performance_step[index] = performance_data
-
+        
         net_worth = data['net_worth']
 
         if self._performance is None:
@@ -370,3 +392,5 @@ class Portfolio(Component, TimedIdentifiable):
         self.ledger.reset()
         for wallet in self._wallets.values():
             wallet.reset()
+        for position in self._positions.values():
+            position.remove_position(position)

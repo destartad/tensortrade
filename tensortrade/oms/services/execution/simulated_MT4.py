@@ -50,25 +50,7 @@ def execute_buy_order(order: 'Order',
 
     commission = options.commission * filled
     quantity = filled - commission
-    """
-    if commission.size < Decimal(10) ** -quantity.instrument.precision:
-        logging.warning("Commission is less than instrument precision. Canceling order. "
-                        "Consider defining a custom instrument with a higher precision.")
-        order.cancel("COMMISSION IS LESS THAN PRECISION.")
-        return None
-    """
-    """
-    transfer = Wallet.transfer(
-        source=base_wallet,
-        target=quote_wallet,
-        quantity=quantity,
-        commission=commission,
-        exchange_pair=order.exchange_pair,
-        reason="BUY"
-    )
 
-    """
-    """create position"""
     executed_price = current_price + Decimal(quantity.instrument.spread)
     executed_price = executed_price.quantize(Decimal(10) ** -quantity.instrument.precision)
     
@@ -81,11 +63,8 @@ def execute_buy_order(order: 'Order',
         executed_price=executed_price
     )
     
-    order.portfolio.add(position)
-
-    print(position.evaluated_price)
-
-    #cre
+    order.portfolio.add_position(position)
+    cash_wallet.update_by_position(position)
 
     trade = Trade(
         order_id=order.id,

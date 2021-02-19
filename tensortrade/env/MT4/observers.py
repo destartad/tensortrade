@@ -10,6 +10,7 @@ from gym.spaces import Box, Space
 
 from tensortrade.feed.core import Stream, NameSpace, DataFeed
 from tensortrade.oms.wallets import Wallet
+from tensortrade.oms.wallets import Position
 from tensortrade.env.generic import Observer
 from collections import OrderedDict
 
@@ -35,19 +36,47 @@ def _create_wallet_source(wallet: 'Wallet', include_worth: bool = True) -> 'List
     streams = []
 
     with NameSpace(exchange_name + ":/" + symbol):
-        free_balance = Stream.sensor(wallet, lambda w: w.balance.as_float(), dtype="float").rename("free")
-        locked_balance = Stream.sensor(wallet, lambda w: w.locked_balance.as_float(), dtype="float").rename("locked")
-        total_balance = Stream.sensor(wallet, lambda w: w.total_balance.as_float(), dtype="float").rename("total")
+        balance = Stream.sensor(wallet, lambda w: w.balance.as_float(), dtype="float").rename("wallet_balance")
+        equity = Stream.sensor(wallet, lambda w: w.equity, dtype="float").rename("wallet_equity")
+        free_margin = Stream.sensor(wallet, lambda w: w.free_margin, dtype="float").rename("wallet_free_margin")
+        
+        #free_balance = Stream.sensor(wallet, lambda w: w.balance.as_float(), dtype="float").rename("wallet_free")
+        #locked_balance = Stream.sensor(wallet, lambda w: w.locked_balance.as_float(), dtype="float").rename("wallet_locked")
+        #total_balance = Stream.sensor(wallet, lambda w: w.total_balance.as_float(), dtype="float").rename("wallet_total")
 
-        streams += [free_balance, locked_balance, total_balance]
-
+        streams += [balance, equity, free_margin]
+        """
         if include_worth:
             price = Stream.select(wallet.exchange.streams(), lambda node: node.name.endswith(symbol))
             worth = (price * total_balance).rename("worth")
             streams += [worth]
-
+        """
     return streams
 
+
+def _create_position_source(position: 'position', include_worth: bool = True) -> 'List[Stream[float]]':
+
+    exchange_name = position.exchange.name
+    symbol = position.instrument.symbol
+
+    streams = []
+    #TODO: customize to position
+    with NameSpace(exchange_name + ":/" + symbol):
+        profit = Stream.sensor(position, lambda p: p.profit.as_float(), dtype="float").rename("position_profit")
+        margin = Stream.sensor(position, lambda p: p.margin.as_float(), dtype="float").rename("position_margin")
+        size = Stream.sensor(position, lambda p: p.size.as_float(), dtype="float").rename("position_size")
+        side = Stream.sensor(position, lambda p: p.side.value(), dtype="str").rename("position_side")
+        sym = Stream.sensor(position, lambda p: p.instrument.symobl, dtype="str").rename("position_symbol")
+
+
+        streams += [sym, profit, margin, size, side]
+        """
+        if include_worth:
+            price = Stream.select(position.exchange.streams(), lambda node: node.name.endswith(symbol))
+            worth = (price * total_balance).rename("worth")
+            streams += [worth]
+        """
+    return streams
 
 def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
     """Creates a list of streams to describe a `Portfolio`.
@@ -69,15 +98,22 @@ def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
         symbol = wallet.instrument.symbol
         sources += wallet.exchange.streams()
         sources += _create_wallet_source(wallet, include_worth=(symbol != base_symbol))
+    
+    for position in portfolio.positions:
+        symbol = position.instrument.symbol
+        sources += position.exchange.streams()
+        sources += _create_position_source(position, include_worth=(symbol != base_symbol))
+    
 
     worth_streams = []
+    
     for s in sources:
-        if s.name.endswith(base_symbol + ":/total") or s.name.endswith("worth"):
+        if s.name.endswith(base_symbol + ":/wallet_equity"):
             worth_streams += [s]
 
     net_worth = Stream.reduce(worth_streams).sum().rename("net_worth")
     sources += [net_worth]
-
+    
     return sources
 
 

@@ -52,8 +52,30 @@ class Wallet(Identifiable):
         self._initial_size = balance.size
         self.instrument = balance.instrument
         self.balance = balance.quantize()
+        self._equity = self.balance.as_float()
         self._locked = {}
+        self._free_margin = self._equity
+        self._margin = 0.00
+        self._profit = 0.00
+    
+    @property
+    def equity(self) -> float:
+        _equity = self.balance.as_float() + self.profit
+        return _equity
 
+    @property
+    def free_margin(self) -> float:
+        _free_margin = self.equity - self.margin
+        return _free_margin
+
+    @property
+    def margin(self) -> float:
+        return self._margin
+
+    @property
+    def profit(self) -> float:
+        return self._profit
+    
     @property
     def locked_balance(self) -> 'Quantity':
         """The total balance of the wallet locked in orders. (`Quantity`, read-only)"""
@@ -352,6 +374,11 @@ class Wallet(Identifiable):
             raise Exception("Invalid Transfer: " + equation)
 
         return Transfer(quantity, commission, exchange_pair.price)
+
+    def update_by_position(self, position: 'Position'):
+        self._profit = float(position.profit)
+        self._margin = float(position.margin)
+        pass
 
     def reset(self) -> None:
         """Resets the wallet."""

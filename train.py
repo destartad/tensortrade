@@ -6,6 +6,8 @@ from tensortrade.feed.core import Stream, DataFeed, NameSpace
 from tensortrade.oms.instruments import USD, EURUSD
 from tensortrade.oms.wallets import Wallet, Portfolio, Position
 from tensortrade.oms.exchanges import Exchange
+from tensortrade.oms.instruments.exchange_pair import ExchangePair
+
 from tensortrade.oms.services.execution.simulated_MT4 import execute_order
 
 ##############
@@ -66,8 +68,9 @@ feed = DataFeed(minute_EURUSD_streams)
 
 portfolio = Portfolio(USD, [
     Wallet(simYunHe, 10000 * USD),
-    Wallet(simYunHe, 0 * EURUSD)
     ])
+
+#available_exchange_pairs= [ExchangePair(simYunHe, EURUSD)]
 
 renderer_feed = DataFeed([
     Stream.source(list(price_history["open_time"])).rename("date"),
