@@ -80,11 +80,11 @@ def execute_buy_order(order: 'Order',
 
 
 def execute_sell_order(order: 'Order',
-                       base_wallet: 'Wallet',
-                       quote_wallet: 'Wallet',
-                       current_price: float,
-                       options: 'ExchangeOptions',
-                       clock: 'Clock') -> 'Trade':
+                      cash_wallet: 'Wallet',
+                      portfolio: 'Portfolio',
+                      current_price: float,
+                      options: 'ExchangeOptions',
+                      clock: 'Clock') -> 'Trade':
     """Executes a sell order on the exchange.
 
     Parameters
@@ -111,25 +111,34 @@ def execute_sell_order(order: 'Order',
         return None
 
     filled = order.remaining.contain(order.exchange_pair)
+    
+    if order.type == TradeType.MARKET:
+        scale = order.price / max(current_price, order.price)
+        filled = scale * filled
 
     commission = options.commission * filled
     quantity = filled - commission
 
+    """
     if commission.size < Decimal(10) ** -quantity.instrument.precision:
         logging.warning("Commission is less than instrument precision. Canceling order. "
                         "Consider defining a custom instrument with a higher precision.")
         order.cancel("COMMISSION IS LESS THAN PRECISION.")
         return None
+    """
 
-    # Transfer Funds from Quote Wallet to Base Wallet
-    transfer = Wallet.transfer(
-        source=quote_wallet,
-        target=base_wallet,
-        quantity=quantity,
-        commission=commission,
-        exchange_pair=order.exchange_pair,
-        reason="SELL"
+    executed_price = current_price.quantize(Decimal(10) ** -quantity.instrument.precision)
+    
+    position = Position(
+        exchange=order.exchange_pair.exchange,
+        current_price=current_price,
+        balance=quantity,
+        side=order.side,
+        executed_price=executed_price
     )
+    
+    portfolio.add_position(position)
+    cash_wallet.update_by_position(position)
 
     trade = Trade(
         order_id=order.id,
@@ -137,9 +146,9 @@ def execute_sell_order(order: 'Order',
         exchange_pair=order.exchange_pair,
         side=TradeSide.SELL,
         trade_type=order.type,
-        quantity=transfer.quantity,
-        price=transfer.price,
-        commission=transfer.commission
+        quantity=quantity,
+        price=current_price,
+        commission=commission
     )
 
     return trade

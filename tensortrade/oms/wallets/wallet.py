@@ -72,8 +72,18 @@ class Wallet(Identifiable):
     def margin(self) -> float:
         return self._margin
 
+    @margin.setter
+    def margin(self,value) -> float:
+        self._margin = value
+        return self._margin
+
     @property
     def profit(self) -> float:
+        return self._profit
+    
+    @profit.setter
+    def profit(self,value) -> float:
+        self._profit = value
         return self._profit
     
     @property

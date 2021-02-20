@@ -117,7 +117,7 @@ class Order(TimedIdentifiable, Observable):
 
         wallet = portfolio.get_wallet(
             self.exchange_pair.exchange.id,
-            self.side.instrument(self.exchange_pair.pair)
+            self.portfolio.base_instrument
         )
         
         """
@@ -206,7 +206,7 @@ class Order(TimedIdentifiable, Observable):
 
         wallet = self.portfolio.get_wallet(
             self.exchange_pair.exchange.id,
-            self.side.instrument(self.exchange_pair.pair)
+            self.portfolio.base_instrument
         )
         quantity = wallet.locked.get(self.path_id, None)
 

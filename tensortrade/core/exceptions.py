@@ -209,3 +209,20 @@ class InvalidTradingPair(Exception):
             "Invalid instrument pair {}/{}.".format(base, quote),
             *args
         )
+
+class InvalidTradeSide(Exception):
+    """Raised when an `Order` with no trade side is placed
+
+    Parameters
+    ----------
+    quantity : `Quantity`
+        An invalid order quantity.
+    *args : positional arguments
+        More positional arguments for the exception.
+    """
+
+    def __init__(self, *args) -> None:
+        super().__init__(
+            "Invalid trade side",
+            *args
+        )

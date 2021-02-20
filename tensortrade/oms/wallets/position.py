@@ -25,7 +25,8 @@ from tensortrade.core.exceptions import (
     InsufficientFunds,
     DoubleLockedQuantity,
     DoubleUnlockedQuantity,
-    QuantityNotLocked
+    QuantityNotLocked,
+    InvalidTradeSide
 )
 from tensortrade.oms.instruments import Instrument, Quantity, ExchangePair
 from tensortrade.oms.orders import Order
@@ -69,8 +70,10 @@ class Position(TimedIdentifiable):
     def evaluated_price(self) -> "Quantity":
         if self.side.value == "buy":
             _evaluated_price = self.current_price - Decimal(self.instrument.spread)
-        else:
+        elif self.side.value == "sell":
             _evaluated_price = self.current_price + Decimal(self.instrument.spread)
+        else:
+            raise InvalidTradeSide()
         return _evaluated_price.quantize(Decimal(10)**(-self.instrument.precision))
         
     @property
@@ -80,8 +83,14 @@ class Position(TimedIdentifiable):
 
     @property
     def profit(self) -> float:
-        _profit = (self.evaluated_price - self._executed_price) * self.size * self.instrument.contract_size
-        return _profit.quantize(Decimal(10)**-2)
+        if self.side.value == "buy":
+            _profit = (self.evaluated_price - self._executed_price) * self.size * self.instrument.contract_size
+        else:
+            _profit = (-self.evaluated_price + self._executed_price) * self.size * self.instrument.contract_size
+
+        _profit = float(_profit.quantize(Decimal(10)**-2))
+
+        return _profit
 
     @classmethod
     def from_tuple(cls, position_tuple: 'Tuple[Exchange, Instrument, float]') -> 'Position':

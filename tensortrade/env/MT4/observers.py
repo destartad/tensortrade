@@ -53,7 +53,7 @@ def _create_wallet_source(wallet: 'Wallet', include_worth: bool = True) -> 'List
         """
     return streams
 
-
+"""No need to observe positions
 def _create_position_source(position: 'position', include_worth: bool = True) -> 'List[Stream[float]]':
 
     exchange_name = position.exchange.name
@@ -62,21 +62,22 @@ def _create_position_source(position: 'position', include_worth: bool = True) ->
     streams = []
     #TODO: customize to position
     with NameSpace(exchange_name + ":/" + symbol):
-        profit = Stream.sensor(position, lambda p: p.profit.as_float(), dtype="float").rename("position_profit")
-        margin = Stream.sensor(position, lambda p: p.margin.as_float(), dtype="float").rename("position_margin")
+        profit = Stream.sensor(position, lambda p: p.profit, dtype="float").rename("position_profit")
+        margin = Stream.sensor(position, lambda p: p.margin, dtype="float").rename("position_margin")
         size = Stream.sensor(position, lambda p: p.size.as_float(), dtype="float").rename("position_size")
         side = Stream.sensor(position, lambda p: p.side.value(), dtype="str").rename("position_side")
         sym = Stream.sensor(position, lambda p: p.instrument.symobl, dtype="str").rename("position_symbol")
 
 
         streams += [sym, profit, margin, size, side]
-        """
+        
         if include_worth:
             price = Stream.select(position.exchange.streams(), lambda node: node.name.endswith(symbol))
             worth = (price * total_balance).rename("worth")
             streams += [worth]
-        """
+        
     return streams
+"""
 
 def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
     """Creates a list of streams to describe a `Portfolio`.
@@ -98,12 +99,6 @@ def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
         symbol = wallet.instrument.symbol
         sources += wallet.exchange.streams()
         sources += _create_wallet_source(wallet, include_worth=(symbol != base_symbol))
-    
-    for position in portfolio.positions:
-        symbol = position.instrument.symbol
-        sources += position.exchange.streams()
-        sources += _create_position_source(position, include_worth=(symbol != base_symbol))
-    
 
     worth_streams = []
     

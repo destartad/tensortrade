@@ -348,6 +348,19 @@ class Portfolio(Component, TimedIdentifiable):
                 keys += [k]
 
         return keys
+    
+    def update(self):
+        _margins : float = 0.00
+        _profits : float = 0.00
+        for p in self.positions:
+            _margins += p.margin
+            _profits += p.profit
+            for ep in self.exchange_pairs:
+                if p.instrument == ep.pair.quote:
+                    p.current_price = ep.price
+        for w in self.wallets:
+            w.margin = _margins
+            w.profit = _profits
 
     def on_next(self, data: dict) -> None:
         """Updates the performance metrics.

@@ -94,6 +94,7 @@ class TensorTradeActionScheme(ActionScheme):
                 self.broker.submit(order)
 
         self.broker.update()
+        self.portfolio.update()
 
     @abstractmethod
     def get_orders(self, action: Any, portfolio: 'Portfolio') -> 'List[Order]':
