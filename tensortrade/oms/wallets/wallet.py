@@ -14,7 +14,7 @@
 
 from typing import Dict, Tuple
 from collections import namedtuple
-from decimal import Decimal
+from decimal import *
 
 import numpy as np
 
@@ -55,34 +55,34 @@ class Wallet(Identifiable):
         self._equity = self.balance.as_float()
         self._locked = {}
         self._free_margin = self._equity
-        self._margin = 0.00
-        self._profit = 0.00
+        self._margin = Decimal('0.00').quantize(Decimal('0.00'))
+        self._profit = Decimal('0.00').quantize(Decimal('0.00'))
     
     @property
-    def equity(self) -> float:
-        _equity = self.balance.as_float() + self.profit
-        return _equity
+    def equity(self) -> Decimal:
+        self._equity = self.balance.size + self.profit
+        return self._equity
 
     @property
-    def free_margin(self) -> float:
-        _free_margin = self.equity - self.margin
-        return _free_margin
+    def free_margin(self) -> Decimal:
+        self._free_margin = self.equity - self.margin
+        return self._free_margin
 
     @property
-    def margin(self) -> float:
+    def margin(self) -> Decimal:
         return self._margin
 
     @margin.setter
-    def margin(self,value) -> float:
+    def margin(self,value) -> Decimal:
         self._margin = value
         return self._margin
 
     @property
-    def profit(self) -> float:
+    def profit(self) -> Decimal:
         return self._profit
     
     @profit.setter
-    def profit(self,value) -> float:
+    def profit(self,value) -> Decimal:
         self._profit = value
         return self._profit
     
@@ -386,13 +386,17 @@ class Wallet(Identifiable):
         return Transfer(quantity, commission, exchange_pair.price)
 
     def update_by_position(self, position: 'Position'):
-        self._margin += float(position.margin)
-        pass
+        self._margin += position.margin
+
+    def update_on_close(self):
+        self.balance = Quantity(self.instrument, self.equity).quantize()
 
     def reset(self) -> None:
         """Resets the wallet."""
         self.balance = Quantity(self.instrument, self._initial_size).quantize()
         self._locked = {}
+        self._margin = Decimal('0.00').quantize(Decimal('0.00'))
+        self._profit = Decimal('0.00').quantize(Decimal('0.00'))
 
     def __str__(self) -> str:
         return '<Wallet: balance={}, locked={}>'.format(self.balance, self.locked_balance)
