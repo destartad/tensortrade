@@ -65,6 +65,7 @@ class Position(TimedIdentifiable):
         self._executed_price = executed_price
         self._margin = self._executed_price * self.instrument.contract_size * self.size / exchange.options.leverage
         self.status = PositionStatus.OPEN
+        self._profit: Decimal = 0.00
 
     @property
     def evaluated_price(self) -> "Quantity":
@@ -77,20 +78,20 @@ class Position(TimedIdentifiable):
         return _evaluated_price.quantize(Decimal(10)**(-self.instrument.precision))
         
     @property
-    def margin(self) -> float:
-        _margin = float(self._margin.quantize(Decimal(10)**-2))
-        return _margin
+    def margin(self) -> Decimal:
+        self._margin = self._margin.quantize(Decimal(10)**-2)
+        return self._margin
 
     @property
-    def profit(self) -> float:
+    def profit(self) -> Decimal:
         if self.side.value == "buy":
-            _profit = (self.evaluated_price - self._executed_price) * self.size * self.instrument.contract_size
+            self._profit = (self.evaluated_price - self._executed_price) * self.size * self.instrument.contract_size
         else:
-            _profit = (-self.evaluated_price + self._executed_price) * self.size * self.instrument.contract_size
+            self._profit = (-self.evaluated_price + self._executed_price) * self.size * self.instrument.contract_size
 
-        _profit = float(_profit.quantize(Decimal(10)**-2))
+        self._profit = self._profit.quantize(Decimal(10)**-2)
 
-        return _profit
+        return self._profit
 
     @classmethod
     def from_tuple(cls, position_tuple: 'Tuple[Exchange, Instrument, float]') -> 'Position':

@@ -62,6 +62,9 @@ def execute_buy_order(order: 'Order',
         executed_price=executed_price
     )
     
+    if position.margin >= cash_wallet.free_margin:
+        return None
+
     portfolio.add_position(position)
     cash_wallet.update_by_position(position)
 
@@ -137,6 +140,9 @@ def execute_sell_order(order: 'Order',
         executed_price=executed_price
     )
     
+    if position.margin >= cash_wallet.free_margin:
+        return None
+    
     portfolio.add_position(position)
     cash_wallet.update_by_position(position)
 
@@ -155,64 +161,29 @@ def execute_sell_order(order: 'Order',
 
 def execute_close_order(order: 'Order',
                        cash_wallet: 'Wallet',
+                       portfolio: 'Portfolio',
                        current_price: float,
                        options: 'ExchangeOptions',
                        clock: 'Clock') -> 'Trade':
-    """Executes a sell order on the exchange.
+    """Executes a close order on the exchange."""
 
-    Parameters
-    ----------
-    order : `Order`
-        The order that is being filled.
-    base_wallet : `Wallet`
-        The wallet of the base instrument.
-    quote_wallet : `Wallet`
-        The wallet of the quote instrument.
-    current_price : float
-        The current price of the exchange pair.
-    options : `ExchangeOptions`
-        The exchange options.
-    clock : `Clock`
-        The clock for the trading process..
-
-    Returns
-    -------
-    `Trade`
-        The executed trade that was made.
-    """
-    if order.type == TradeType.LIMIT and order.price > current_price:
+    if portfolio.positions == None:
         return None
 
-    filled = order.remaining.contain(order.exchange_pair)
-
-    commission = options.commission * filled
-    quantity = filled - commission
-
-    if commission.size < Decimal(10) ** -quantity.instrument.precision:
-        logging.warning("Commission is less than instrument precision. Canceling order. "
-                        "Consider defining a custom instrument with a higher precision.")
-        order.cancel("COMMISSION IS LESS THAN PRECISION.")
-        return None
-
-    # Transfer Funds from Quote Wallet to Base Wallet
-    transfer = Wallet.transfer(
-        source=quote_wallet,
-        target=base_wallet,
-        quantity=quantity,
-        commission=commission,
-        exchange_pair=order.exchange_pair,
-        reason="SELL"
-    )
+    portfolio.update()
+    for p in portfolio.positions:
+        portfolio.remove_position(p)
+    cash_wallet.update_on_close()
 
     trade = Trade(
         order_id=order.id,
         step=clock.step,
         exchange_pair=order.exchange_pair,
-        side=TradeSide.SELL,
+        side=TradeSide.CLOSE,
         trade_type=order.type,
-        quantity=transfer.quantity,
-        price=transfer.price,
-        commission=transfer.commission
+        quantity=0.00,
+        price=current_price,
+        commission=0.00
     )
 
     return trade

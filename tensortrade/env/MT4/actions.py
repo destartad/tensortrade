@@ -2,12 +2,13 @@
 from abc import abstractmethod
 from itertools import product
 from typing import Union, List, Any
+from decimal import Decimal, ROUND_DOWN
 
 from gym.spaces import Space, Discrete
 
 from tensortrade.core import Clock
 from tensortrade.env.generic import ActionScheme, TradingEnv
-from tensortrade.oms.instruments import ExchangePair
+from tensortrade.oms.instruments import ExchangePair,USD,EURUSD,USDJPY
 from tensortrade.oms.orders import (
     Broker,
     Order,
@@ -406,7 +407,7 @@ class SimpleOrders_mt4(TensorTradeActionScheme):
 
     def __init__(self,
                  criteria: 'Union[List[OrderCriteria], OrderCriteria]' = None,
-                 trade_sizes: 'Union[List[float], int]' = 10,
+                 trade_sizes: 'Union[List[float], int]' = None,
                  durations: 'Union[List[int], int]' = None,
                  trade_type: 'TradeType' = TradeType.MARKET,
                  order_listener: 'OrderListener' = None,
@@ -415,13 +416,12 @@ class SimpleOrders_mt4(TensorTradeActionScheme):
         self.min_order_pct = min_order_pct
         criteria = self.default('criteria', criteria)
         self.criteria = criteria if isinstance(criteria, list) else [criteria]
-
-        trade_sizes = self.default('trade_sizes', trade_sizes)
+        """
         if isinstance(trade_sizes, list):
             self.trade_sizes = trade_sizes
         else:
             self.trade_sizes = [(x + 1) / trade_sizes for x in range(trade_sizes)]
-
+        """
         durations = self.default('durations', durations)
         self.durations = durations if isinstance(durations, list) else [durations]
 
@@ -437,15 +437,29 @@ class SimpleOrders_mt4(TensorTradeActionScheme):
             self.actions = product(
                 [TradeSide.BUY, TradeSide.SELL],
                 self.criteria,
-                self.trade_sizes,
                 self.durations
             )
             self.actions = list(self.actions)
-            x = (TradeSide.CLOSE,None,None,None)
-            #print(type(x))
-            self.actions.append(x)
-            #print(self.actions)
-            self.actions = list(product(self.portfolio.exchange_pairs, self.actions))
+            
+            cash_wallet = self.portfolio.wallets[0]
+            free_margin = Decimal(cash_wallet.free_margin)
+            size_proportion = [0.1,0.2,0.3,0.4,0.5]        
+            #trade_sizes = self.default('trade_sizes', trade_sizes)
+            min_trade_size = 0.01
+            trade_sizes={}   
+            
+            for ep in self.portfolio.exchange_pairs:
+                max_trade_size = Decimal(free_margin/ep.price/ep.pair.quote.contract_size*ep.exchange.options.leverage).quantize(Decimal('.00'), rounding=ROUND_DOWN)
+                _y=[]
+                for i in size_proportion:
+                    _x = float(Decimal(Decimal(i)*max_trade_size).quantize(Decimal('.00'), rounding=ROUND_DOWN))
+                    if _x >= min_trade_size:
+                        _y.append(_x)
+                trade_sizes = {ep.pair.quote.symbol:_y}
+            
+            self.actions = list(product(self.portfolio.exchange_pairs, trade_sizes[ep.pair.quote.symbol], self.actions))
+            close_all_position_order = (self.portfolio.exchange_pairs[0], 1.00, (TradeSide.CLOSE,None,None))
+            self.actions.append(close_all_position_order)
             self.actions = [None] + self.actions
             self._action_space = Discrete(len(self.actions))
         return self._action_space
@@ -457,7 +471,7 @@ class SimpleOrders_mt4(TensorTradeActionScheme):
         if action == 0:
             return []
 
-        (ep, (side, criteria, proportion, duration)) = self.actions[action]
+        (ep, proportion, (side,criteria,duration)) = self.actions[action]
 
         base_instrument = TradeSide.BUY.instrument(ep.pair)
         quote_instrument = TradeSide.SELL.instrument(ep.pair)

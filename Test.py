@@ -19,7 +19,7 @@ c=3
 x = product(a)
 x = list(x)
 """
-
+'''
 class Student(object):
     def __init__(self, score=0):
         self._score = score
@@ -43,3 +43,18 @@ s.score
 print("=====================")
 s.score = 88
 s.score
+
+trade_sizes = 10
+trade_sizes = [(x + 1) / trade_sizes for x in range(trade_sizes)]
+print(trade_sizes)'''
+"""
+from decimal import *
+
+
+x=Decimal('4.2123412').quantize(Decimal('0.00'), rounding=ROUND_DOWN)
+print(x)
+"""
+from decimal import *
+
+y:Decimal = 0.00
+print(y)

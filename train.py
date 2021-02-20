@@ -3,7 +3,7 @@ import pandas as pd
 import ta
 
 from tensortrade.feed.core import Stream, DataFeed, NameSpace
-from tensortrade.oms.instruments import USD, EURUSD
+from tensortrade.oms.instruments import USD, EURUSD, USDJPY
 from tensortrade.oms.wallets import Wallet, Portfolio, Position
 from tensortrade.oms.exchanges import Exchange
 from tensortrade.oms.instruments.exchange_pair import ExchangePair
@@ -105,8 +105,7 @@ from tensortrade.agents import DQNAgent
 done = False
 obs = env.reset()
 while not done:
-    action = 1
-    #action = env.action_space.sample()
+    action = env.action_space.sample()
     obs, reward, done, info = env.step(action)
 
 

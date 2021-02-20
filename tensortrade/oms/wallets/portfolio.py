@@ -13,6 +13,7 @@
 # limitations under the License
 
 import re
+from decimal import Decimal
 
 from typing import Callable, Tuple, List, TypeVar
 
@@ -20,7 +21,7 @@ from typing import Callable, Tuple, List, TypeVar
 from tensortrade.core import Component, TimedIdentifiable
 from tensortrade.oms.exchanges import Exchange
 from tensortrade.oms.orders import OrderListener
-from tensortrade.oms.instruments import Instrument, Quantity, ExchangePair, USD, EURUSD
+from tensortrade.oms.instruments import Instrument, Quantity, ExchangePair, USD, EURUSD, USDJPY
 from tensortrade.oms.wallets.wallet import Wallet
 from tensortrade.oms.wallets.position import Position
 from tensortrade.oms.wallets.ledger import Ledger
@@ -81,7 +82,7 @@ class Portfolio(Component, TimedIdentifiable):
         #TODO: calculation sum of open postion - margin/profit/swap/commission
         self._current_balanace = self._initial_balance
         self._equity = self._initial_balance.size
-        self._margin = None
+        self._margin: Decimal = 0.00
         self._free_margin = self._initial_balance
         """if self._margin != None
             self._margin_level = self._equity/self._margin
@@ -121,6 +122,7 @@ class Portfolio(Component, TimedIdentifiable):
         for w in self.wallets:
             #if w.exchage.name == "simYunHe": later implement differnet exchange has different exchange pairs
             exchange_pairs += [ExchangePair(w.exchange, USD/EURUSD)]
+            #exchange_pairs += [ExchangePair(w.exchange, USD/EURUSD),ExchangePair(w.exchange, USD/USDJPY)]
         return exchange_pairs
 
     @property
@@ -144,9 +146,9 @@ class Portfolio(Component, TimedIdentifiable):
         return self._net_worth
 
     @property
-    def profit_loss(self) -> float:
+    def profit_loss(self) -> Decimal:
         """The percent loss in net worth since the last reset. (float, read-only)"""
-        return 1.0 - self.net_worth / self.initial_net_worth
+        return Decimal('1.0') - self.net_worth / self.initial_net_worth
 
     @property
     def performance(self) -> 'OrderedDict':
@@ -301,7 +303,7 @@ class Portfolio(Component, TimedIdentifiable):
         wallet : `Wallet`
             The wallet to be removed.
         """
-        self._positions.pop((position.exchange.id, position.instrument.symbol), None)
+        self._positions.pop((position.id, position.exchange.id, position.instrument.symbol), None)
 
     def remove_pair(self, exchange: 'Exchange', instrument: 'Instrument') -> None:
         """Removes a wallet from the portfolio by `exchange` and `instrument`.
@@ -350,8 +352,8 @@ class Portfolio(Component, TimedIdentifiable):
         return keys
     
     def update(self):
-        _margins : float = 0.00
-        _profits : float = 0.00
+        _margins = Decimal('0.00').quantize(Decimal('0.00'))
+        _profits = Decimal('0.00').quantize(Decimal('0.00'))
         for p in self.positions:
             _margins += p.margin
             _profits += p.profit
