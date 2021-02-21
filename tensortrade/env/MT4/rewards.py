@@ -88,10 +88,10 @@ class RiskAdjustedReturns(TensorTradeRewardScheme):
     """
 
     def __init__(self,
-                 return_algorithm: str = 'sharpe',
-                 risk_free_rate: float = 0.,
-                 target_returns: float = 0.,
-                 window_size: int = 1) -> None:
+                 return_algorithm: str = 'sortino',
+                 risk_free_rate: float = 0.03,
+                 target_returns: float = 0.1,
+                 window_size: int = 15) -> None:
         algorithm = self.default('return_algorithm', return_algorithm)
 
         assert algorithm in ['sharpe', 'sortino']
@@ -148,7 +148,10 @@ class RiskAdjustedReturns(TensorTradeRewardScheme):
         expected_return = np.mean(returns)
         downside_std = np.sqrt(np.std(downside_returns))
 
-        return (expected_return - self._risk_free_rate + 1e-9) / (downside_std + 1e-9)
+        sortino_ratio=(expected_return - self._risk_free_rate + 1e-9) / (downside_std + 1e-9)
+        if sortino_ratio > 100 or sortino_ratio < -100:
+            sortino_ratio = -3.0
+        return sortino_ratio
 
     def get_reward(self, portfolio: 'Portfolio') -> float:
         """Computes the reward corresponding to the selected risk-adjusted return metric.

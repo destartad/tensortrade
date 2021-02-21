@@ -93,25 +93,27 @@ import tensortrade.env.MT4 as mt4
 env = mt4.create(
     #exchange=simYunHe,
     portfolio=portfolio,
-    action_scheme="mt4", #TODO: override with own action
+    action_scheme="mt4", #TODO: override with own action;DONE
     reward_scheme="risk-adjusted", #TODO: override with own reward
     feed=feed,
+    min_periods=60,#warmup obs
     window_size=60,
     renderer_feed=renderer_feed,
-    renderer="empty"
+    renderer="screen-log"
     )
 
 
 #%%run agent
 from tensortrade.agents import DQNAgent
+from tensortrade.agents import A2CAgent
 
-
+"""
 done = False
 obs = env.reset()
 while not done:
     action = env.action_space.sample()
     obs, reward, done, info = env.step(action)
 """
-agent = DQNAgent(env)
-agent.train(n_steps=200, n_episodes=2, render_interval=10, save_path="agents/")
-"""
+agent = A2CAgent(env)
+agent.train(n_steps=200, n_episodes=2, save_path="agents/")
+
