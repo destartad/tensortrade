@@ -117,5 +117,5 @@ while not done:
 """
 agent = A2CAgent(env)
 
-agent.train(n_steps=200, n_episodes=2, rendrender_interval=50, save_path="agents/")
+agent.train(n_steps=2000, n_episodes=100, rendrender_interval=50, save_every=10, save_path="agents/")
 
