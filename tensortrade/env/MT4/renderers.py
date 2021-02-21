@@ -762,7 +762,8 @@ _registry = {
     "screen-log": ScreenLogger,
     "file-log": FileLogger,
     "plotly": PlotlyTradingChart,
-    "matplot": MatplotlibTradingChart
+    "matplot": MatplotlibTradingChart,
+    "empty":EmptyRenderer
 }
 
 

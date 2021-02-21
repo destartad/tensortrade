@@ -3,9 +3,9 @@ import pandas as pd
 import ta
 
 from tensortrade.feed.core import Stream, DataFeed, NameSpace
-from tensortrade.oms.instruments import USD, EURUSD, USDJPY
+from tensortrade.oms.instruments import *
 from tensortrade.oms.wallets import Wallet, Portfolio, Position
-from tensortrade.oms.exchanges import Exchange
+from tensortrade.oms.exchanges import Exchange,ExchangeOptions
 from tensortrade.oms.instruments.exchange_pair import ExchangePair
 
 from tensortrade.oms.services.execution.simulated_MT4 import execute_order
@@ -44,8 +44,11 @@ minute_EURUSD.drop(columns=['open_time'], inplace=True)
 #################
 
 
-simYunHe = Exchange("simYunhe", service=execute_order)(
-    Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-EURUSD")
+simYunHe_options = ExchangeOptions(trading_instruments=[EURUSD])
+
+simYunHe = Exchange("simYunhe", service=execute_order, options=simYunHe_options)(
+    Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-EURUSD"),
+    #Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-USDJPY")
 )
 
 ################
@@ -88,55 +91,27 @@ renderer_feed = DataFeed([
 import tensortrade.env.MT4 as mt4
 
 env = mt4.create(
-    exchange=simYunHe,
+    #exchange=simYunHe,
     portfolio=portfolio,
     action_scheme="mt4", #TODO: override with own action
-    reward_scheme="simple", #TODO: override with own reward
+    reward_scheme="risk-adjusted", #TODO: override with own reward
     feed=feed,
-    window_size=15,
+    window_size=60,
     renderer_feed=renderer_feed,
-    renderer="screen-log"
+    renderer="empty"
     )
 
 
 #%%run agent
 from tensortrade.agents import DQNAgent
 
+
 done = False
 obs = env.reset()
 while not done:
     action = env.action_space.sample()
     obs, reward, done, info = env.step(action)
-
-
-'''
+"""
 agent = DQNAgent(env)
-agent.train(n_steps=200, n_episodes=2, render_interval=10)
-'''
-'''
-from tensorforce.agents import Agent
-
-agent_spec = {
-    "type": "ppo_agent",
-    "step_optimizer":{
-        "type":"adam",
-        "learning_rate": 1e-4
-    },
-    "discount": 0.99,
-    "likelihood_ratio_clipping": 0.2,
-}
-
-network_spec = [
-    dict(type='dense', size=64, activation="tanh"),
-    dict(type='dense', size=32, activation="tanh")
-]
-
-agent = Agent.create(spec=agent_spec,
-                        kwargs=dict(
-                            network=network_spec,
-                            states=env.observer.feed,
-                            actions=env.actions
-                        ))
-'''
-
-# %%
+agent.train(n_steps=200, n_episodes=2, render_interval=10, save_path="agents/")
+"""

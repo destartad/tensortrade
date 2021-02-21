@@ -46,7 +46,9 @@ class ExchangeOptions:
                  min_trade_price: float = 1e-8,
                  max_trade_price: float = 1e8,
                  leverage: int = 100,
-                 is_live: bool = False):
+                 is_live: bool = False,
+                 trading_instruments = []
+                 ):
         self.commission = commission
         self.min_trade_size = min_trade_size
         self.max_trade_size = max_trade_size
@@ -54,6 +56,7 @@ class ExchangeOptions:
         self.max_trade_price = max_trade_price
         self.leverage = leverage
         self.is_live = is_live
+        self.trading_instruments = trading_instruments
 
 
 class Exchange(Component, TimedIdentifiable):

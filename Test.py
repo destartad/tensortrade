@@ -53,8 +53,26 @@ from decimal import *
 
 x=Decimal('4.2123412').quantize(Decimal('0.00'), rounding=ROUND_DOWN)
 print(x)
-"""
+
 from decimal import *
 
 y:Decimal = 0.00
 print(y)
+"""
+
+import os
+import sys
+import logging
+import importlib
+
+from abc import abstractmethod
+from datetime import datetime
+from typing import Union, Tuple
+from collections import OrderedDict
+
+
+date_format = "%Y-%m-%d %H:%M:%S %p"
+
+log_entry = f"[{datetime.now().strftime(date_format)}]"
+
+print(log_entry)

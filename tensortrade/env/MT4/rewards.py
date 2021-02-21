@@ -163,10 +163,10 @@ class RiskAdjustedReturns(TensorTradeRewardScheme):
         float
             The reward corresponding to the selected risk-adjusted return metric.
         """
-        net_worths = [nw['net_worth'] for nw in portfolio.performance.values()][-(self._window_size + 1):]
+        net_worths = [float(nw['net_worth']) for nw in portfolio.performance.values()][-(self._window_size + 1):]
         returns = pd.Series(net_worths).pct_change().dropna()
         risk_adjusted_return = self._return_algorithm(returns)
-        return risk_adjusted_return
+        return float(risk_adjusted_return)
 
 class PBR(TensorTradeRewardScheme):
     """A reward scheme for position-based returns.

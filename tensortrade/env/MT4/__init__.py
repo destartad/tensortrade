@@ -15,7 +15,7 @@ from tensortrade.oms.wallets import Portfolio
 
 
 def create(portfolio: 'Portfolio',
-           exchange: 'Exchange', 
+           #exchange: 'Exchange', 
            action_scheme: 'Union[actions.TensorTradeActionScheme, str]',
            reward_scheme: 'Union[rewards.TensorTradeRewardScheme, str]',
            feed: 'DataFeed',

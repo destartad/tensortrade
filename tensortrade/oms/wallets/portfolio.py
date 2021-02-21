@@ -21,7 +21,7 @@ from typing import Callable, Tuple, List, TypeVar
 from tensortrade.core import Component, TimedIdentifiable
 from tensortrade.oms.exchanges import Exchange
 from tensortrade.oms.orders import OrderListener
-from tensortrade.oms.instruments import Instrument, Quantity, ExchangePair, USD, EURUSD, USDJPY
+from tensortrade.oms.instruments import *
 from tensortrade.oms.wallets.wallet import Wallet
 from tensortrade.oms.wallets.position import Position
 from tensortrade.oms.wallets.ledger import Ledger
@@ -119,10 +119,9 @@ class Portfolio(Component, TimedIdentifiable):
     def exchange_pairs(self) -> 'List[ExchangePair]':
         """All the exchange pairs in the portfolio. (`List[ExchangePair]`, read-only)"""
         exchange_pairs = []
-        for w in self.wallets:
-            #if w.exchage.name == "simYunHe": later implement differnet exchange has different exchange pairs
-            exchange_pairs += [ExchangePair(w.exchange, USD/EURUSD)]
-            #exchange_pairs += [ExchangePair(w.exchange, USD/EURUSD),ExchangePair(w.exchange, USD/USDJPY)]
+        for exchange in self.exchanges:
+            for ti in exchange.options.trading_instruments:
+                exchange_pairs += [ExchangePair(exchange, self.base_instrument/ti)]
         return exchange_pairs
 
     @property
@@ -146,9 +145,10 @@ class Portfolio(Component, TimedIdentifiable):
         return self._net_worth
 
     @property
-    def profit_loss(self) -> Decimal:
+    def profit_loss(self) -> float:
         """The percent loss in net worth since the last reset. (float, read-only)"""
-        return Decimal('1.0') - self.net_worth / self.initial_net_worth
+        _profit_loss = Decimal('1.0') - self.net_worth / self.initial_net_worth
+        return float(_profit_loss)
 
     @property
     def performance(self) -> 'OrderedDict':
@@ -407,5 +407,6 @@ class Portfolio(Component, TimedIdentifiable):
         self.ledger.reset()
         for wallet in self._wallets.values():
             wallet.reset()
-        for position in self._positions.values():
-            position.remove_position(position)
+        if self._positions:
+            for p in self.positions:
+                self.remove_position(p)

@@ -441,6 +441,9 @@ class SimpleOrders_mt4(TensorTradeActionScheme):
             )
             self.actions = list(self.actions)
             
+            """
+            Generate trading size based on initial balance for each trading pairs
+            """
             cash_wallet = self.portfolio.wallets[0]
             free_margin = Decimal(cash_wallet.free_margin)
             size_proportion = [0.1,0.2,0.3,0.4,0.5]        
@@ -487,6 +490,7 @@ class SimpleOrders_mt4(TensorTradeActionScheme):
 
         price = ep.price
         #value = size*float(price)
+
         """
         if size < 10 ** -instrument.precision \
                 or value < self.min_order_pct*portfolio.net_worth:
