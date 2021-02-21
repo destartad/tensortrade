@@ -78,6 +78,10 @@ class Portfolio(Component, TimedIdentifiable):
         self._net_worth = None
         self._performance = None
         self._keys = None
+        self._max_net_worth: float = float(self._initial_balance.size)
+        self._max_profit: float = 0.00
+        self._max_loss: float = 0.00
+        self._max_drawdown: float = 0.00
 
         #TODO: calculation sum of open postion - margin/profit/swap/commission
         self._current_balanace = self._initial_balance
@@ -364,6 +368,14 @@ class Portfolio(Component, TimedIdentifiable):
             w.margin = _margins
             w.profit = _profits
 
+        self._max_net_worth = max(float(self._max_net_worth), float(self.net_worth))
+        self._max_drawdown = max((float(self._max_net_worth - float(self.net_worth))), self._max_drawdown)
+        
+        if float(self.net_worth - self._initial_net_worth) >= 0.00:
+            self._max_profit = max(self._max_profit, float(self.net_worth - self._initial_net_worth))
+        else:
+            self._max_loss = max(self._max_loss, float(self._initial_net_worth - self.net_worth))
+
     def on_next(self, data: dict) -> None:
         """Updates the performance metrics.
 
@@ -403,6 +415,10 @@ class Portfolio(Component, TimedIdentifiable):
         self._initial_net_worth = None
         self._net_worth = None
         self._performance = None
+        self._max_net_worth: float = float(self._initial_balance.size)
+        self._max_profit: float = 0.00
+        self._max_loss: float = 0.00
+        self._max_drawdown: float = 0.00
 
         self.ledger.reset()
         for wallet in self._wallets.values():

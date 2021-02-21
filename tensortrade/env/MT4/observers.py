@@ -101,6 +101,9 @@ def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
         sources += _create_wallet_source(wallet, include_worth=(symbol != base_symbol))
 
     worth_streams = []
+    max_profit_streams = []
+    max_loss_streams = []
+    max_drawdown_streams = []
     
     for s in sources:
         if s.name.endswith(base_symbol + ":/wallet_equity"):
