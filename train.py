@@ -107,15 +107,12 @@ env = mt4.create(
 from tensortrade.agents import DQNAgent
 from tensortrade.agents import A2CAgent
 
-#%%
-"""
 done = False
 obs = env.reset()
 while not done:
     action = env.action_space.sample()
     obs, reward, done, info = env.step(action)
-"""
+
 agent = A2CAgent(env)
 
-agent.train(n_steps=2000, n_episodes=100, rendrender_interval=50, save_every=10, save_path="agents/")
-
+agent.train(n_steps=2000, n_episodes=100, rendrender_interval=50, save_every=1, save_path="agents/")
