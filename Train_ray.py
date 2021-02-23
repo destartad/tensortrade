@@ -1,6 +1,6 @@
 import ray
 import numpy as np
-
+import json
 from ray import tune
 from ray.tune.registry import register_env
 
@@ -23,15 +23,11 @@ from tensortrade.oms.services.execution.simulated_MT4 import execute_order
 
 def load_csv(filename):
     df = pd.read_csv(filename)
-#minute_EURUSD = minute_EURUSD.set_index('open_time')
-#minute_EURUSD.index = pd.to_datetime(minute_EURUSD.index)
     df['open_time']=pd.to_datetime(df['open_time'])
     df.sort_values(by='open_time', ascending=True, inplace=True)
     df.reset_index(drop=True, inplace=True)
     df['open_time'] = df['open_time'].dt.strftime('%Y-%m-%d %H:%M:%S %p')
-    #df=df.add_prefix("EUR:")
     return df
-#minute_EURUSD[['open','high','low','close','volume']]=minute_EURUSD[['open','high','low','close','volume']].apply(pd.to_numeric)
 
 def create_env(config):
     minute_EURUSD = load_csv('y.csv')
@@ -107,9 +103,33 @@ def create_env(config):
         )
     return env
 
+#myEnv = create_env()
 register_env("TradingEnv", create_env)
 
+"""To enable object spilling to remote storage (any URI supported by smart_open):
 
+ray.init(
+    _system_config={
+        "automatic_object_spilling_enabled": True,
+        "max_io_workers": 4,  # More IO workers for remote storage.
+        "min_spilling_size": 100 * 1024 * 1024,  # Spill at least 100MB at a time.
+        "object_spilling_config": json.dumps(
+            {"type": "smart_open", "params": {"uri": "s3:///bucket/path"}},
+        )
+    },
+)
+"""
+
+ray.init(
+    _system_config={
+        "automatic_object_spilling_enabled": True,
+        "object_spilling_config": json.dumps(
+            {"type": "filesystem", "params": {"directory_path": "/tmp/spill"}},
+        )
+    },
+)
+
+"""
 analysis = tune.run(
     "PPO",
     stop={
@@ -118,12 +138,12 @@ analysis = tune.run(
     config={
         "env": "TradingEnv",
         "env_config": {
-            "window_size": 25
+            "window_size": 60
         },
         "log_level": "DEBUG",
         "framework": "tfe",
         "ignore_worker_failures": True,
-        "num_workers": 1,
+        "num_workers": 2,
         "num_gpus": 0,
         "clip_rewards": True,
         "lr": 8e-6,
@@ -144,3 +164,38 @@ analysis = tune.run(
     },
     checkpoint_at_end=True
 )
+"""
+
+import ray
+import ray.rllib.agents.ppo as ppo
+from ray.tune.logger import pretty_print
+
+config = ppo.DEFAULT_CONFIG.copy()
+config["num_gpus"] = 0
+config["num_workers"] = 1
+config["framework"] = "tfe"
+trainer = ppo.PPOTrainer(config=config, env="TradingEnv")
+
+# Can optionally call trainer.restore(path) to load a checkpoint.
+
+for i in range(1000):
+   # Perform one iteration of training the policy with PPO
+   result = trainer.train()
+   print(pretty_print(result))
+
+   if i % 100 == 0:
+       checkpoint = trainer.save()
+       print("checkpoint saved at", checkpoint)
+
+# Also, in case you have trained a model outside of ray/RLlib and have created
+# an h5-file with weight values in it, e.g.
+# my_keras_model_trained_outside_rllib.save_weights("model.h5")
+# (see: https://keras.io/models/about-keras-models/)
+
+# ... you can load the h5-weights into your Trainer's Policy's ModelV2
+# (tf or torch) by doing:
+#trainer.import_model("my_weights.h5")
+# NOTE: In order for this to work, your (custom) model needs to implement
+# the `import_from_h5` method.
+# See https://github.com/ray-project/ray/blob/master/rllib/tests/test_model_imports.py
+# for detailed examples for tf- and torch trainers/models.
