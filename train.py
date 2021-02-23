@@ -113,6 +113,10 @@ while not done:
     action = env.action_space.sample()
     obs, reward, done, info = env.step(action)
 
+<<<<<<< HEAD
 agent = A2CAgent(env)
 
 agent.train(n_steps=2000, n_episodes=100, rendrender_interval=50, save_every=1, save_path="agents/")
+=======
+agent.train(n_steps=2000, n_episodes=100, rendrender_interval=50, save_every=10, save_path="agents/")
+>>>>>>> a144ebc3490720a34f53ad5fa4eec49a11ab6039

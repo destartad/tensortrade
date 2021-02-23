@@ -73,6 +73,6 @@ from collections import OrderedDict
 
 date_format = "%Y-%m-%d %H:%M:%S %p"
 
-log_entry = f"[{datetime.now().strftime("%Y-%m-%d %-I:%M:%S %p")}]"
+log_entry = f"[{datetime.now().strftime(date_format)}]"
 
 print(log_entry)
