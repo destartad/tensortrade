@@ -1,12 +1,9 @@
-<<<<<<< HEAD
-=======
 import ray
 import numpy as np
 
 from ray import tune
 from ray.tune.registry import register_env
 
->>>>>>> a144ebc3490720a34f53ad5fa4eec49a11ab6039
 import pandas as pd
 import ta
 
@@ -17,15 +14,6 @@ from tensortrade.oms.exchanges import Exchange,ExchangeOptions
 from tensortrade.oms.instruments.exchange_pair import ExchangePair
 
 from tensortrade.oms.services.execution.simulated_MT4 import execute_order
-<<<<<<< HEAD
-import ray
-from ray import tune
-from ray.tune.registry import register_env
-import tensortrade.env.MT4 as mt4
-
-def load_csv(filename):
-    df = pd.read_csv(filename)
-=======
 
 ##############
 #Manipulate data: 
@@ -37,25 +25,10 @@ def load_csv(filename):
     df = pd.read_csv(filename)
 #minute_EURUSD = minute_EURUSD.set_index('open_time')
 #minute_EURUSD.index = pd.to_datetime(minute_EURUSD.index)
->>>>>>> a144ebc3490720a34f53ad5fa4eec49a11ab6039
     df['open_time']=pd.to_datetime(df['open_time'])
     df.sort_values(by='open_time', ascending=True, inplace=True)
     df.reset_index(drop=True, inplace=True)
     df['open_time'] = df['open_time'].dt.strftime('%Y-%m-%d %H:%M:%S %p')
-<<<<<<< HEAD
-    return df
-
-def create_env(config):
-       
-    minute_EURUSD = load_csv('y.csv')
-    price_history = minute_EURUSD[['open_time','open','high','low','close','volume']]
-    minute_EURUSD.drop(columns=['open_time'], inplace=True)
-
-    #################
-    #Create Env
-    #################
-    simYunHe_options = ExchangeOptions(trading_instruments=[EURUSD])
-=======
     #df=df.add_prefix("EUR:")
     return df
 #minute_EURUSD[['open','high','low','close','volume']]=minute_EURUSD[['open','high','low','close','volume']].apply(pd.to_numeric)
@@ -78,15 +51,10 @@ def create_env(config):
 
     simYunHe_options = ExchangeOptions(trading_instruments=[EURUSD])
 
->>>>>>> a144ebc3490720a34f53ad5fa4eec49a11ab6039
     simYunHe = Exchange("simYunhe", service=execute_order, options=simYunHe_options)(
         Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-EURUSD"),
         #Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-USDJPY")
     )
-<<<<<<< HEAD
-=======
-
->>>>>>> a144ebc3490720a34f53ad5fa4eec49a11ab6039
     ################
     #ta.add_all_ta_features(
     #    minute_EURUSD,
@@ -120,15 +88,12 @@ def create_env(config):
         Stream.source(list(price_history["volume"]), dtype="float").rename("volume") 
     ])
 
-<<<<<<< HEAD
-=======
     ####################
     #Env
     ###################
 
     import tensortrade.env.MT4 as mt4
 
->>>>>>> a144ebc3490720a34f53ad5fa4eec49a11ab6039
     env = mt4.create(
         #exchange=simYunHe,
         portfolio=portfolio,
@@ -140,10 +105,6 @@ def create_env(config):
         renderer_feed=renderer_feed,
         renderer="screen-log"
         )
-<<<<<<< HEAD
-    
-=======
->>>>>>> a144ebc3490720a34f53ad5fa4eec49a11ab6039
     return env
 
 register_env("TradingEnv", create_env)
@@ -160,11 +121,7 @@ analysis = tune.run(
             "window_size": 25
         },
         "log_level": "DEBUG",
-<<<<<<< HEAD
-        "framework": "torch",
-=======
         "framework": "tfe",
->>>>>>> a144ebc3490720a34f53ad5fa4eec49a11ab6039
         "ignore_worker_failures": True,
         "num_workers": 1,
         "num_gpus": 0,
