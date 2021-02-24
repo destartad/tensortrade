@@ -183,7 +183,6 @@ class Portfolio(Component, TimedIdentifiable):
             margin += p.margin
         return margin
 
-
     def balance(self, instrument: Instrument) -> 'Quantity':
         """Gets the total balance of the portfolio in a specific instrument
         available for use.
