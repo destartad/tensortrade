@@ -50,7 +50,8 @@ class Trade(TimedIdentifiable):
                  trade_type: TradeType,
                  quantity: 'Quantity',
                  price: float,
-                 commission: 'Quantity'):
+                 commission: 'Quantity',
+                 exchange_current_time: 'Datetime'):
         """
         Arguments:
             order_id: The id of the order that created the trade.
@@ -75,6 +76,7 @@ class Trade(TimedIdentifiable):
         self.quantity = quantity
         self.price = price
         self.commission = commission
+        self.exchange_current_time = exchange_current_time
 
     @property
     def base_instrument(self) -> 'Instrument':
@@ -119,6 +121,11 @@ class Trade(TimedIdentifiable):
     @property
     def is_market_order(self) -> bool:
         return self.type == TradeType.MARKET
+    """
+    @property
+    def exchange_current_time(self) -> 'Datetime':
+        return self.exchange_current_time
+    """
 
     def to_dict(self):
         return {'id': self.id,
@@ -133,7 +140,8 @@ class Trade(TimedIdentifiable):
                 'quantity': self.quantity,
                 'price': self.price,
                 'commission': self.commission,
-                "created_at": self.created_at
+                'created_at': self.created_at,
+                'exchange_current_time': self.exchange_current_time
                 }
 
     def to_json(self):
@@ -149,7 +157,8 @@ class Trade(TimedIdentifiable):
                 'quantity': str(self.quantity),
                 'price': float(self.price),
                 'commission': str(self.commission),
-                "created_at": str(self.created_at)
+                'created_at': str(self.created_at),
+                'exchange_current_time': str(self.exchange_current_time)
                 }
 
     def __str__(self):

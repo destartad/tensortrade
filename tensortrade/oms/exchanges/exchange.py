@@ -83,6 +83,7 @@ class Exchange(Component, TimedIdentifiable):
         self._service = service
         self.options = options if options else ExchangeOptions()
         self._price_streams = {}
+        self._time_stream = []
 
     def __call__(self, *streams) -> "Exchange":
         """Sets up the price streams used to generate the prices.
@@ -98,8 +99,11 @@ class Exchange(Component, TimedIdentifiable):
             The exchange the price streams were passed in for.
         """
         for s in streams:
-            pair = "".join([c if c.isalnum() else "/" for c in s.name])
-            self._price_streams[pair] = s.rename(self.name + ":/" + s.name)
+            if s.name == 'CurrentTime':
+                self._time_stream = s.rename(self.name + ":/" + s.name)
+            else:
+                pair = "".join([c if c.isalnum() else "/" for c in s.name])
+                self._price_streams[pair] = s.rename(self.name + ":/" + s.name)
         return self
 
     def streams(self) -> "List[Stream[float]]":
@@ -111,6 +115,18 @@ class Exchange(Component, TimedIdentifiable):
             The price streams for the exchange.
         """
         return list(self._price_streams.values())
+
+    def quote_time(self) -> "Datetime":
+        """The quote time on the exchange
+
+        Returns
+        -------
+        `DateTime`
+            The quote time of the exchangtimee.
+        """
+        time = Datetime(self._time_stream.value)
+        
+        return time    
 
     def quote_price(self, trading_pair: "TradingPair") -> "Decimal":
         """The quote price of a trading pair on the exchange, denoted in the
@@ -162,7 +178,8 @@ class Exchange(Component, TimedIdentifiable):
             portfolio=portfolio,
             current_price=self.quote_price(order.pair),
             options=self.options,
-            clock=self.clock
+            clock=self.clock,
+            exchange_current_time=self._time_stream.current
         )
 
         if trade:

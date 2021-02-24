@@ -13,7 +13,8 @@ def execute_buy_order(order: 'Order',
                       portfolio: 'Portfolio',
                       current_price: float,
                       options: 'ExchangeOptions',
-                      clock: 'Clock') -> 'Trade':
+                      clock: 'Clock',
+                      exchange_current_time: 'Datatime') -> 'Trade':
     """
     Executes a buy order on the exchange.
     1. create position object
@@ -59,7 +60,8 @@ def execute_buy_order(order: 'Order',
         current_price=current_price,
         balance=quantity,
         side=order.side,
-        executed_price=executed_price
+        executed_price=executed_price,
+        exchange_current_time=exchange_current_time
     )
     
     if position.margin >= cash_wallet.free_margin:
@@ -76,7 +78,8 @@ def execute_buy_order(order: 'Order',
         trade_type=order.type,
         quantity=quantity,
         price=current_price,
-        commission=commission
+        commission=commission,
+        exchange_current_time=exchange_current_time
     )
 
     return trade
@@ -87,7 +90,8 @@ def execute_sell_order(order: 'Order',
                       portfolio: 'Portfolio',
                       current_price: float,
                       options: 'ExchangeOptions',
-                      clock: 'Clock') -> 'Trade':
+                      clock: 'Clock',
+                      exchange_current_time: 'Datatime') -> 'Trade':
     """Executes a sell order on the exchange.
 
     Parameters
@@ -137,7 +141,8 @@ def execute_sell_order(order: 'Order',
         current_price=current_price,
         balance=quantity,
         side=order.side,
-        executed_price=executed_price
+        executed_price=executed_price,
+        exchange_current_time=exchange_current_time
     )
     
     if position.margin >= cash_wallet.free_margin:
@@ -154,7 +159,8 @@ def execute_sell_order(order: 'Order',
         trade_type=order.type,
         quantity=quantity,
         price=current_price,
-        commission=commission
+        commission=commission,
+        exchange_current_time=exchange_current_time
     )
 
     return trade
@@ -164,7 +170,8 @@ def execute_close_order(order: 'Order',
                        portfolio: 'Portfolio',
                        current_price: float,
                        options: 'ExchangeOptions',
-                       clock: 'Clock') -> 'Trade':
+                       clock: 'Clock',
+                       exchange_current_time: 'Datatime') -> 'Trade':
     """Executes a close order on the exchange."""
 
     if portfolio.positions == None:
@@ -183,7 +190,8 @@ def execute_close_order(order: 'Order',
         trade_type=order.type,
         quantity=0.00,
         price=current_price,
-        commission=0.00
+        commission=0.00,
+        exchange_current_time=exchange_current_time
     )
 
     return trade
@@ -193,7 +201,8 @@ def execute_order(order: 'Order',
                   portfolio: 'Portfolio',
                   current_price: float,
                   options: 'Options',
-                  clock: 'Clock') -> 'Trade':
+                  clock: 'Clock',
+                  exchange_current_time: 'Datatime') -> 'Trade':
     """Executes an order on the exchange.
 
     Parameters
@@ -221,7 +230,8 @@ def execute_order(order: 'Order',
               "portfolio": portfolio,
               "current_price": current_price,
               "options": options,
-              "clock": clock}
+              "clock": clock,
+              "exchange_current_time": exchange_current_time}
 
     if order.is_buy:
         trade = execute_buy_order(**kwargs)

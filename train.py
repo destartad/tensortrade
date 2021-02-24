@@ -48,6 +48,7 @@ simYunHe_options = ExchangeOptions(trading_instruments=[EURUSD])
 
 simYunHe = Exchange("simYunhe", service=execute_order, options=simYunHe_options)(
     Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-EURUSD"),
+    Stream.source(price_history['open_time'].tolist(), dtype="float").rename("CurrentTime"),
     #Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-USDJPY")
 )
 
@@ -113,6 +114,8 @@ while not done:
     action = env.action_space.sample()
     obs, reward, done, info = env.step(action)
 
+"""
 agent = A2CAgent(env)
 
-agent.train(n_steps=2000, n_episodes=100, rendrender_interval=50, save_every=1, save_path="agents/")
+agent.train(n_steps=60*24*5, n_episodes=100, rendrender_interval=50, save_every=1, save_path="agents/")
+"""

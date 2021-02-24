@@ -56,7 +56,7 @@ class Position(TimedIdentifiable):
 
     ledger = Ledger()
 
-    def __init__(self, exchange: 'Exchange', balance: 'Quantity', side, executed_price, current_price):
+    def __init__(self, exchange: 'Exchange', balance: 'Quantity', side, executed_price, current_price, exchange_current_time):
         self.exchange = exchange
         self.current_price = current_price
         self.side = side
@@ -66,6 +66,24 @@ class Position(TimedIdentifiable):
         self._margin = self._executed_price * self.instrument.contract_size * self.size / exchange.options.leverage
         self.status = PositionStatus.OPEN
         self._profit: Decimal = 0.00
+        self._filled_time = exchange_current_time
+        self._swap = Decimal = 0.00
+
+    @property
+    def swap(self) -> "Decimal":
+        return self._swap
+
+    @swap.setter
+    def swap(self, value) -> "Decimal":
+        self._swap = swap
+
+    @property
+    def filled_time(self) -> "Datetime":
+        return self._filled_time
+
+    @property
+    def exchange_current_time(self) -> "Datetime":
+        return exchange_current_time
 
     @property
     def evaluated_price(self) -> "Quantity":
@@ -78,18 +96,20 @@ class Position(TimedIdentifiable):
         return _evaluated_price.quantize(Decimal(10)**(-self.instrument.precision))
         
     @property
-    def margin(self) -> Decimal:
+    def margin(self) -> 'Decimal':
         self._margin = self._margin.quantize(Decimal(10)**-2)
         return self._margin
 
     @property
-    def profit(self) -> Decimal:
+    def profit(self) -> 'Decimal':
         if self.side.value == "buy":
             self._profit = (self.evaluated_price - self._executed_price) * self.size * self.instrument.contract_size
         else:
             self._profit = (-self.evaluated_price + self._executed_price) * self.size * self.instrument.contract_size
 
         self._profit = self._profit.quantize(Decimal(10)**-2)
+
+        #self._profit += self.swap
 
         return self._profit
 

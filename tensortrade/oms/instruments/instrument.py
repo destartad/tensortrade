@@ -156,7 +156,7 @@ AUD = Instrument('AUD', 2, 'Australian Dollar')
 """
 USD = Instrument('USD', 2, 'U.S. Dollar', 0.00, 0.00)
 EURUSD = Instrument('EURUSD', 5, 'EURUSD', -10.0, -6.7)
-USDJPY = Instrument('USDJPY', 5, 'USDJPY', -10.0, -6.7)
+USDJPY = Instrument('USDJPY', 5, 'USDJPY', -7.10, -7.40)
 
 """
 # Commodities

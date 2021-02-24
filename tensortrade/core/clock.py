@@ -39,6 +39,12 @@ class Clock(object):
         """
         return datetime.now().strftime(format) if format else datetime.now()
 
+    """TODO: check if need to implement env current time in clock or implement in exchange is ok
+    def env_current_time(self. format: str = None) -> datetime:
+        env_current_time = env.time
+        return env_current_time
+    """    
+
     def increment(self) -> None:
         """Increments the clock by specified time increment."""
         self.step += 1
