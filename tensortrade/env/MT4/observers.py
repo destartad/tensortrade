@@ -97,7 +97,8 @@ def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
 
     for wallet in portfolio.wallets:
         symbol = wallet.instrument.symbol
-        sources += wallet.exchange.streams()
+        sources += wallet.exchange.price_streams()
+        sources += [wallet.exchange._time_stream]
         sources += _create_wallet_source(wallet, include_worth=(symbol != base_symbol))
 
     worth_streams = []

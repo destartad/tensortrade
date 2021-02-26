@@ -106,7 +106,7 @@ class Exchange(Component, TimedIdentifiable):
                 self._price_streams[pair] = s.rename(self.name + ":/" + s.name)
         return self
 
-    def streams(self) -> "List[Stream[float]]":
+    def price_streams(self) -> "List[Stream[float]]":
         """Gets the price streams for the exchange.
 
         Returns
@@ -115,6 +115,16 @@ class Exchange(Component, TimedIdentifiable):
             The price streams for the exchange.
         """
         return list(self._price_streams.values())
+
+    def time_stream(self) -> "List[Stream[float]]":
+        """Gets the price streams for the exchange.
+
+        Returns
+        -------
+        `List[Stream[float]]`
+            The price streams for the exchange.
+        """
+        return self._time_stream
 
     def quote_time(self) -> "Datetime":
         """The quote time on the exchange
@@ -179,7 +189,7 @@ class Exchange(Component, TimedIdentifiable):
             current_price=self.quote_price(order.pair),
             options=self.options,
             clock=self.clock,
-            exchange_current_time=self._time_stream.current
+            exchange_current_time=self._time_stream.value
         )
 
         if trade:

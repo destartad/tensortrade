@@ -521,7 +521,10 @@ class IterableStream(Stream[T]):
             self.current = next(self.generator)
         except StopIteration:
             self.stop = True
+    """
 
+    current = value + 1
+    """
     def forward(self) -> T:
         v = self.current
         try:

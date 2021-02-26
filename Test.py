@@ -75,4 +75,25 @@ date_format = "%Y-%m-%d %H:%M:%S %p"
 
 log_entry = f"[{datetime.now().strftime(date_format)}]"
 
-print(log_entry)
+
+filled_time=datetime(2021,2,16,5,10,00)
+current_time=datetime(2021,3,2,4,10,00)
+z="2019-11-08 06:36:00 AM"
+deal = datetime.strptime(z,"%Y-%m-%d %H:%M:%S %p" )
+
+def calc_swap_weekday(filled_time,current_time):
+    
+        date_diff = (current_time.date() - filled_time.date()).days
+        z = date_diff//7
+        y = current_time.weekday()
+        if date_diff <= 7:
+            return date_diff
+        elif y == 0 or y == 1:
+            return date_diff
+        elif y == 2 or y == 3 or y == 4:
+            return date_diff + 2
+        elif y == 5 or y == 6:
+            return date_diff
+
+x = calc_swap_weekday(filled_time, current_time)
+print(deal)

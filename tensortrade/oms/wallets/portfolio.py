@@ -360,6 +360,8 @@ class Portfolio(Component, TimedIdentifiable):
         for p in self.positions:
             _margins += p.margin
             _profits += p.profit
+            #p.last_update_time = 
+            p.exchange_current_time = p.exchange._time_stream.value
             for ep in self.exchange_pairs:
                 if p.instrument == ep.pair.quote:
                     p.current_price = ep.price
