@@ -67,34 +67,28 @@ class Position(TimedIdentifiable):
         self._margin = self._executed_price * self.instrument.contract_size * self.size / exchange.options.leverage
         self.status = PositionStatus.OPEN
         self._profit: Decimal = 0.00
-        self._filled_time = datetime.datetime.strptime(exchange_current_time, "%Y-%m-%d %H:%M:%S %p")
+        self._filled_time:datetime = datetime.datetime.strptime(exchange_current_time, "%Y-%m-%d %H:%M:%S %p")
+        self._exchange_current_time: datetime = datetime.datetime.strptime(exchange_current_time, "%Y-%m-%d %H:%M:%S %p")
         self._swap = Decimal = 0.00
         if self.side.value == "buy":
             self._instrument_swap = self.instrument.swap_long
         else:
             self._instrument_swap = self.instrument.swap_short
-        self._swap_day = 0
-        self._exchange_current_time = datetime.datetime.strptime(exchange_current_time, "%Y-%m-%d %H:%M:%S %p")
-
-    @property
-    def swap(self) -> "Decimal":
         
-        swap_day = Position.calc_swap_weekday(self.filled_time, self.exchange_current_time)
-        self._swap = self._instrument_swap * swap_day
-
-        return Decimal(self._swap)
-
     @property
-    def filled_time(self) -> "Datetime":
+    def filled_time(self) -> datetime:
         return self._filled_time
 
     @property
-    def exchange_current_time(self) -> "Datetime":
+    def exchange_current_time(self) -> datetime:
         return self._exchange_current_time
 
     @exchange_current_time.setter
     def exchange_current_time(self, date):
-        self._exchange_current_time = date
+        if not isinstance(date, datetime.datetime):
+            self._exchange_current_time = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S %p")
+        else:
+            self._exchange_current_time = date
         return self._exchange_current_time
 
     @property
@@ -125,8 +119,7 @@ class Position(TimedIdentifiable):
 
         return self._profit
 
-    @staticmethod
-    def calc_swap_weekday(filled_time,current_time):
+    def calc_swap_weekday(self, filled_time, current_time):
             date_diff = (current_time.date() - filled_time.date()).days
             z = date_diff//7
             y = current_time.weekday()
@@ -138,6 +131,14 @@ class Position(TimedIdentifiable):
                 return date_diff + 2
             elif y == 5 or y == 6:
                 return date_diff
+
+    @property
+    def swap(self) -> "Decimal":
+        
+        swap_day = self.calc_swap_weekday(self.filled_time, self.exchange_current_time)
+        self._swap = Decimal(self._instrument_swap * swap_day * float(self.size)).quantize(Decimal('0.00'))
+
+        return self._swap
 
     @classmethod
     def from_tuple(cls, position_tuple: 'Tuple[Exchange, Instrument, float]') -> 'Position':
