@@ -26,10 +26,10 @@ from tensortrade.oms.wallets.wallet import Wallet
 from tensortrade.oms.wallets.position import Position
 from tensortrade.oms.wallets.ledger import Ledger
 from collections import OrderedDict
-
+from tensortrade.oms.orders.trade import TradeSide
 
 WalletType = TypeVar("WalletType", Wallet, Tuple[Exchange, Instrument, float])
-PositionType = TypeVar("PositionType", Position, Tuple[Exchange, Instrument, float])
+PositionType = TypeVar("PositionType", Position, Tuple[Exchange, Instrument, float, TradeSide, Decimal, Decimal, str])
 
 
 class Portfolio(Component, TimedIdentifiable):
@@ -88,9 +88,19 @@ class Portfolio(Component, TimedIdentifiable):
         self._equity = self._initial_balance.size
         self._margin: Decimal = 0.00
         self._free_margin = self._initial_balance
+        self._total_open_position_size = None
+        self._total_open_buy_position_size = None
+        self._total_open_sell_position_size = None
+        self._total_position_profit = None
+        self._total_open_buy_position_profit = None
+        self._total_open_sell_position_profit = None
+
         """if self._margin != None
             self._margin_level = self._equity/self._margin
         """
+    @property
+    def max_net_worth(self):
+        return self._max_net_worth
 
     @property
     def wallets(self) -> 'List[Wallet]':
@@ -151,7 +161,7 @@ class Portfolio(Component, TimedIdentifiable):
     @property
     def profit_loss(self) -> float:
         """The percent loss in net worth since the last reset. (float, read-only)"""
-        _profit_loss = Decimal('1.0') - self.net_worth / self.initial_net_worth
+        _profit_loss = 1.0 - self.net_worth / self.initial_net_worth
         return float(_profit_loss)
 
     @property

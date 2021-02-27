@@ -164,7 +164,7 @@ class Position(TimedIdentifiable):
         self._locked = {}
 
     def __str__(self) -> str:
-        return '<Wallet: balance={}, locked={}>'.format(self.balance, self.locked_balance)
+        return '<Position: symbol={}, side={}>'.format(self.instrument, self.side.value)
 
     def __repr__(self) -> str:
         return str(self)

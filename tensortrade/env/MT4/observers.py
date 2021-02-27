@@ -37,8 +37,8 @@ def _create_wallet_source(wallet: 'Wallet', include_worth: bool = True) -> 'List
 
     with NameSpace(exchange_name + ":/" + symbol):
         balance = Stream.sensor(wallet, lambda w: w.balance.as_float(), dtype="float").rename("wallet_balance")
-        equity = Stream.sensor(wallet, lambda w: w.equity, dtype="float").rename("wallet_equity")
-        free_margin = Stream.sensor(wallet, lambda w: w.free_margin, dtype="float").rename("wallet_free_margin")
+        equity = Stream.sensor(wallet, lambda w: float(w.equity), dtype="float").rename("wallet_equity")
+        free_margin = Stream.sensor(wallet, lambda w: float(w.free_margin), dtype="float").rename("wallet_free_margin")
         
         #free_balance = Stream.sensor(wallet, lambda w: w.balance.as_float(), dtype="float").rename("wallet_free")
         #locked_balance = Stream.sensor(wallet, lambda w: w.locked_balance.as_float(), dtype="float").rename("wallet_locked")
@@ -53,30 +53,28 @@ def _create_wallet_source(wallet: 'Wallet', include_worth: bool = True) -> 'List
         """
     return streams
 
-def _create_position_source(position: 'position', include_worth: bool = True) -> 'List[Stream[float]]':
-
+"""
+def _create_position_source(position: 'Position', include_worth: bool = True) -> 'List[Stream[float]]':
     exchange_name = position.exchange.name
-    #symbol = position.instrument.symbol
-
+    symbol = position.instrument.symbol
     streams = []
-    #TODO: customize to position
     with NameSpace(exchange_name + ":/p"):
-        profit = Stream.sensor(position, lambda p: p.profit, dtype="float").rename("position_profit")
+        profit = Stream.sensor(position, lambda p: p.profit, dtype='Decimal').rename("p_profit")
+        
         margin = Stream.sensor(position, lambda p: p.margin, dtype="float").rename("position_margin")
         size = Stream.sensor(position, lambda p: p.size.as_float(), dtype="float").rename("position_size")
         side = Stream.sensor(position, lambda p: p.side.value(), dtype="str").rename("position_side")
         sym = Stream.sensor(position, lambda p: p.instrument.symobl, dtype="str").rename("position_symbol")
+        
 
-
-        streams += [sym, profit, margin, size, side]
-        """
+        streams += [profit]
+        
         if include_worth:
             price = Stream.select(position.exchange.streams(), lambda node: node.name.endswith(symbol))
             worth = (price * total_balance).rename("worth")
             streams += [worth]
-        """
     return streams
-
+"""
 
 def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
     """Creates a list of streams to describe a `Portfolio`.
@@ -99,13 +97,14 @@ def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
         sources += wallet.exchange.price_streams()
         sources += [wallet.exchange._time_stream]
         sources += _create_wallet_source(wallet, include_worth=(symbol != base_symbol))
-
-    for position in portfolio.positions:
-        symbol = position.instrument.symbol
-        sources += _create_position_source(position, include_worth=(symbol != base_symbol))
+    """
+    if portfolio.positions:
+        for p in portfolio.positions:
+            sources += _create_position_source(p, include_worth=(symbol != base_symbol))
+    """
 
     worth_streams = []
-    max_profit_streams = []
+    #max_profit_streams = Stream.sensor(portfolio, lambda p: p.max_net_worth, dtype='float').rename("Portfolio_max_profit")
     max_loss_streams = []
     max_drawdown_streams = []
     
@@ -115,6 +114,7 @@ def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
 
     net_worth = Stream.reduce(worth_streams).sum().rename("net_worth")
     sources += [net_worth]
+    #sources += [max_profit_streams]
     
     return sources
 

@@ -9,12 +9,15 @@ from tensortrade.oms.exchanges import Exchange,ExchangeOptions
 from tensortrade.oms.instruments.exchange_pair import ExchangePair
 
 from tensortrade.oms.services.execution.simulated_MT4 import execute_order
+from decimal import Decimal
 
 ##############
 #Manipulate data: 
 #1. Convert index into datetime
 #2. TO-DO: normalization?
 #################
+import sys
+
 
 def load_csv(filename):
     df = pd.read_csv(filename)
@@ -29,7 +32,7 @@ def load_csv(filename):
 #minute_EURUSD[['open','high','low','close','volume']]=minute_EURUSD[['open','high','low','close','volume']].apply(pd.to_numeric)
 
 
-minute_EURUSD = load_csv('y.csv')
+minute_EURUSD = load_csv(sys.path[0] + "/tensortrade/data/EURUSD_1minute.csv")
 
 #minute_EURUSD_ta = ta.add_all_ta_features(minute_EURUSD, 'open', 'high', 'low', 'close', 'volume', fillna=True)
 
@@ -44,9 +47,9 @@ minute_EURUSD.drop(columns=['open_time'], inplace=True)
 #################
 
 
-simYunHe_options = ExchangeOptions(trading_instruments=[EURUSD])
+MT4_options = ExchangeOptions(trading_instruments=[EURUSD])
 
-simYunHe = Exchange("simYunhe", service=execute_order, options=simYunHe_options)(
+MT4 = Exchange("simYunhe", service=execute_order, options=MT4_options)(
     Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-EURUSD"),
     Stream.source(price_history['open_time'].tolist(), dtype="float").rename("CurrentTime"),
     #Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-USDJPY")
@@ -71,8 +74,7 @@ feed = DataFeed(minute_EURUSD_streams)
 ###############
 
 portfolio = Portfolio(USD, [
-    Wallet(simYunHe, 10000 * USD),
-    ])
+    Wallet(MT4, 10000 * USD)])
 
 #available_exchange_pairs= [ExchangePair(simYunHe, EURUSD)]
 
@@ -97,8 +99,8 @@ env = mt4.create(
     action_scheme="mt4", #TODO: override with own action;DONE
     reward_scheme="risk-adjusted", #TODO: override with own reward
     feed=feed,
-    min_periods=5,#warmup obs
-    window_size=60,
+    min_periods=60,#warmup obs
+    window_size=60*3,
     renderer_feed=renderer_feed,
     renderer="screen-log"
     )
