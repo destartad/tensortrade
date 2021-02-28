@@ -189,7 +189,7 @@ class Exchange(Component, TimedIdentifiable):
             current_price=self.quote_price(order.pair),
             options=self.options,
             clock=self.clock,
-            exchange_current_time=self._time_stream.value
+            exchange_current_time=self._time_stream.value.to_pydatetime()
         )
 
         if trade:

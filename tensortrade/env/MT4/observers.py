@@ -1,4 +1,3 @@
-
 from typing import List
 
 
@@ -303,7 +302,7 @@ class TensorTradeObserver(Observer):
         self.history.push(obs_row)
 
         obs = self.history.observe()
-        obs = obs.astype(self._observation_dtype)
+        #obs = obs.astype(self._observation_dtype)
         return obs
 
     def has_next(self) -> bool:

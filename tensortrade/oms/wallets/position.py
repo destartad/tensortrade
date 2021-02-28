@@ -67,8 +67,11 @@ class Position(TimedIdentifiable):
         self._margin = self._executed_price * self.instrument.contract_size * self.size / exchange.options.leverage
         self.status = PositionStatus.OPEN
         self._profit: Decimal = 0.00
-        self._filled_time:datetime = datetime.datetime.strptime(exchange_current_time, "%Y-%m-%d %H:%M:%S %p")
-        self._exchange_current_time: datetime = datetime.datetime.strptime(exchange_current_time, "%Y-%m-%d %H:%M:%S %p")
+        #self._filled_time:datetime = datetime.datetime.strptime(exchange_current_time, "%Y-%m-%d %H:%M:%S %p")
+        self._filled_time: datetime = exchange_current_time
+        #self._exchange_current_time: datetime = datetime.datetime.strptime(exchange_current_time, "%Y-%m-%d %H:%M:%S %p")
+        self._exchange_current_time: datetime = exchange_current_time
+
         self._swap = Decimal = 0.00
         if self.side.value == "buy":
             self._instrument_swap = self.instrument.swap_long

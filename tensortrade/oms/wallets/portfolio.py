@@ -371,7 +371,7 @@ class Portfolio(Component, TimedIdentifiable):
             _margins += p.margin
             _profits += p.profit
             #p.last_update_time = 
-            p.exchange_current_time = p.exchange._time_stream.value
+            p.exchange_current_time = p.exchange._time_stream.value.to_pydatetime()
             for ep in self.exchange_pairs:
                 if p.instrument == ep.pair.quote:
                     p.current_price = ep.price
