@@ -75,6 +75,16 @@ def _create_position_source(position: 'Position', include_worth: bool = True) ->
     return streams
 """
 
+def _create_portfolio_source(portfolio: 'Portfolio', include_worth: bool = False) -> 'List[Stream[float]]':
+    streams = []
+    free_margin = Stream.sensor(portfolio, lambda p: p.free_margin, dtype='float').rename("portfolio_free_margin")
+    side = Stream.sensor(portfolio, lambda p: p.position_side_EURUSD, dtype='float').rename("portfolio_position_side_EURUSD")
+    buying_power_ratio = Stream.sensor(portfolio, lambda p: p.buying_power_ratio, dtype='float').rename("portfolio_buying_power_ratio")
+    profit_loss = Stream.sensor(portfolio, lambda p: p.profit_loss, dtype='float').rename("portfolio_profit_loss")
+
+    streams += [free_margin, side, buying_power_ratio, profit_loss]
+    return streams
+
 def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
     """Creates a list of streams to describe a `Portfolio`.
 
@@ -117,6 +127,9 @@ def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
     
     return sources
 
+def _dict_merge(dict1, dict2): 
+    res = {**dict1, **dict2}
+    return res
 
 class ObservationHistory(object):
     """Stores observations from a given episode of the environment.
@@ -226,6 +239,7 @@ class TensorTradeObserver(Observer):
                  **kwargs) -> None:
         internal_group = Stream.group(_create_internal_streams(portfolio)).rename("internal")
         external_group = Stream.group(feed.inputs).rename("external")
+        portfolio_group = Stream.group(_create_portfolio_source(portfolio)).rename("portfolio")
 
         if renderer_feed:
             renderer_group = Stream.group(renderer_feed.inputs).rename("renderer")
@@ -233,12 +247,14 @@ class TensorTradeObserver(Observer):
             self.feed = DataFeed([
                 internal_group,
                 external_group,
-                renderer_group
+                renderer_group,
+                portfolio_group
             ])
         else:
             self.feed = DataFeed([
                 internal_group,
-                external_group
+                external_group,
+                portfolio_group
             ])
 
         self.window_size = window_size
@@ -250,7 +266,7 @@ class TensorTradeObserver(Observer):
 
         self.history = ObservationHistory(window_size=window_size)
 
-        initial_obs = self.feed.next()["external"]
+        initial_obs = _dict_merge(self.feed.next()["external"], self.feed.next()["portfolio"])
         n_features = len(initial_obs.keys())
 
         self._observation_space = Box(
@@ -277,7 +293,7 @@ class TensorTradeObserver(Observer):
         if self.min_periods is not None:
             for _ in range(self.min_periods):
                 if self.has_next():
-                    obs_row = self.feed.next()["external"]
+                    obs_row = _dict_merge(self.feed.next()["external"],self.feed.next()["portfolio"])
                     self.history.push(obs_row)
 
     def observe(self, env: 'TradingEnv') -> np.array:
@@ -298,11 +314,11 @@ class TensorTradeObserver(Observer):
             self.renderer_history += [data["renderer"]]
 
         # Push new observation to observation history
-        obs_row = data["external"]
+        obs_row = _dict_merge(data["external"], data["portfolio"])
         self.history.push(obs_row)
 
         obs = self.history.observe()
-        #obs = obs.astype(self._observation_dtype)
+        #obs = obs.astype(self._observation_dtype) #force converting all obs to
         return obs
 
     def has_next(self) -> bool:

@@ -85,9 +85,11 @@ class Portfolio(Component, TimedIdentifiable):
 
         #TODO: calculation sum of open postion - margin/profit/swap/commission
         self._current_balanace = self._initial_balance
-        self._equity = self._initial_balance.size
         self._margin: Decimal = 0.00
-        self._free_margin = self._initial_balance
+        self._free_margin = Decimal('0.00').quantize(Decimal('0.00'))
+        self._equity = Decimal('0.00').quantize(Decimal('0.00'))
+        
+        """
         self._total_open_position_size = None
         self._total_open_buy_position_size = None
         self._total_open_sell_position_size = None
@@ -95,9 +97,39 @@ class Portfolio(Component, TimedIdentifiable):
         self._total_open_buy_position_profit = None
         self._total_open_sell_position_profit = None
 
-        """if self._margin != None
+        if not self._margin 
             self._margin_level = self._equity/self._margin
         """
+    @property
+    def buying_power_ratio(self):
+        return float(self.free_margin/self.equity)
+
+    @property
+    def free_margin(self):
+        self._free_margin = Decimal('0.00').quantize(Decimal('0.00'))
+        for w in self.wallets:
+            self._free_margin += w.free_margin
+        return float(self._free_margin)
+    @property
+    def equity(self):
+        self._equity = Decimal('0.00').quantize(Decimal('0.00'))
+
+        for w in self.wallets:
+            self._equity += w.equity
+        return float(self._equity)
+
+    @property
+    def position_side_EURUSD(self):
+        if not self.positions:
+            return 0
+        elif self.positions:
+            for p in self.positions:
+                if p.instrument.name == "EURUSD":
+                    if p.side.value == 'buy':
+                        return 1
+                    elif p.side.value == 'sell':
+                        return 2
+
     @property
     def max_net_worth(self):
         return self._max_net_worth
@@ -161,7 +193,10 @@ class Portfolio(Component, TimedIdentifiable):
     @property
     def profit_loss(self) -> float:
         """The percent loss in net worth since the last reset. (float, read-only)"""
-        _profit_loss = 1.0 - self.net_worth / self.initial_net_worth
+        if self.net_worth or self.initial_net_worth:
+            _profit_loss = 1.0 - self.net_worth / self.initial_net_worth
+        else:
+            _profit_loss = 1.0
         return float(_profit_loss)
 
     @property

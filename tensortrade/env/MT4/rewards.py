@@ -212,10 +212,56 @@ class PBR(TensorTradeRewardScheme):
         self.position = -1
         self.feed.reset()
 
+from empyrical import sortino_ratio, calmar_ratio, omega_ratio, sharpe_ratio
+
+class MT4_return(TensorTradeRewardScheme):
+    def __init__(self,
+                 return_algorithm: str = 'sortino',
+                 risk_free_rate: float = 0.03,
+                 target_returns: float = 0.1,
+                 window_size: int = 15) -> None:
+        
+        algorithm = self.default('return_algorithm', return_algorithm)
+
+        assert algorithm in ['sharpe', 'sortino', 'calmar', 'omega']
+
+        if algorithm == 'sharpe':
+            return_algorithm = sharpe_ratio
+        elif algorithm == 'sortino':
+            return_algorithm = sortino_ratio
+        elif algorithm == 'calmar':
+            return_algorithm = calmar_ratio
+        elif algorithm == 'omega':
+            return_algorithm = omega_ratio
+
+        self._return_algorithm = return_algorithm
+        self._risk_free_rate = self.default('risk_free_rate', risk_free_rate)
+        self._target_returns = self.default('target_returns', target_returns)
+        self._window_size = self.default('window_size', window_size)
+
+    def get_reward(self, portfolio: 'Portfolio') -> float:
+        """Computes the reward corresponding to the selected risk-adjusted return metric.
+
+        Parameters
+        ----------
+        portfolio : `Portfolio`
+            The current portfolio being used by the environment.
+
+        Returns
+        -------
+        float
+            The reward corresponding to the selected risk-adjusted return metric.
+        """
+        net_worths = [float(nw['net_worth']) for nw in portfolio.performance.values()][-(self._window_size + 1):]
+        returns = pd.Series(net_worths).pct_change().dropna()
+        risk_adjusted_return = self._return_algorithm(returns)
+        return float(risk_adjusted_return)
+
 
 _registry = {
     'simple': SimpleProfit,
-    'risk-adjusted': RiskAdjustedReturns
+    'risk-adjusted': RiskAdjustedReturns,
+    'MT4': MT4_return
 }
 
 
