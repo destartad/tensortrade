@@ -43,7 +43,9 @@ def execute_buy_order(order: 'Order',
     """
     if order.type == TradeType.LIMIT and order.price < current_price:
         return None
-
+    for p in portfolio.positions:
+        if order.quote_instrument == p.instrument and order.side != p.side:
+            return None
     filled = order.remaining.contain(order.exchange_pair)
 
     if order.type == TradeType.MARKET:
@@ -116,6 +118,10 @@ def execute_sell_order(order: 'Order',
     """
     if order.type == TradeType.LIMIT and order.price > current_price:
         return None
+
+    for p in portfolio.positions:
+        if order.quote_instrument == p.instrument and order.side != p.side:
+            return None
 
     filled = order.remaining.contain(order.exchange_pair)
     
