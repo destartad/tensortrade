@@ -105,15 +105,33 @@ env = mt4.create(
 #%%run agent
 from tensortrade.agents import DQNAgent
 from tensortrade.agents import A2CAgent
-
+"""
 done = False
 obs = env.reset()
 while not done:
     action = env.action_space.sample()
     obs, reward, done, info = env.step(action)
+"""
+
+#from stable_baselines3.common.policies import MlpPolicy
+#from stable_baselines3.common import make_vec_env
+from stable_baselines3 import A2C
+
+model = A2C('MlpPolicy', env, verbose=1)
+model.learn(total_timesteps=200)
+model.save("TT_A2C")
+
+
 
 
 """
+model = PPO2
+policy = MlpLnLstmPolicy
+params = { "learning_rate": 1e-5 }
+
+agent = model(policy, environment, model_kwargs=params)
+
+
 agent = A2CAgent(env)
 
 agent.train(n_steps=60*24*5, n_episodes=100, rendrender_interval=50, save_every=1, save_path="agents/")
