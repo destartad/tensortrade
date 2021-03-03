@@ -101,6 +101,10 @@ class Portfolio(Component, TimedIdentifiable):
             self._margin_level = self._equity/self._margin
         """
     @property
+    def max_drawdown_pct(self):
+        return self._max_drawdown/self.net_worth
+    
+    @property
     def buying_power_ratio(self):
         return float(self.free_margin/self.equity)
 

@@ -63,7 +63,8 @@ def create(portfolio: 'Portfolio',
     )
 
     stopper = stoppers.MaxLossStopper(
-        max_allowed_loss=kwargs.get("max_allowed_loss", 0.5)
+        max_allowed_loss=kwargs.get("max_allowed_loss", 0.5),
+        max_allowed_drawdown_pct=kwargs.get("max_allowed_drawdown_pct", 0.6)
     )
 
     renderer_list = kwargs.get("renderer", renderers.EmptyRenderer())

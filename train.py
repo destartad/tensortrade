@@ -35,15 +35,9 @@ minute_EURUSD = load_csv(sys.path[0] + "/tensortrade/data/EURUSD_1minute.csv")
 #minute_EURUSD = load_csv('y.csv')
 #minute_EURUSD_ta = ta.add_all_ta_features(minute_EURUSD, 'open', 'high', 'low', 'close', 'volume', fillna=True)
 
-price_history = minute_EURUSD[['open','high','low','close','volume', 'weekofyear', 'year', 'month', 'weekday', 'day', 'hour', 'minute','open_time']]
-
-"""
-ta.add_all_ta_features(
-    price_history,
-    **{k: "" + k for k in ['open', 'high', 'low', 'close', 'volume']}
-)
-print(price_history)
-"""
+#%%
+minute_EURUSD = minute_EURUSD.loc[minute_EURUSD['weekday']!=6]
+price_history = minute_EURUSD[['open','high','low','close','volume', 'weekofyear', 'month', 'weekday', 'day', 'hour', 'minute']]
 
 minute_EURUSD_streams = [
     Stream.source(list(minute_EURUSD[c]), dtype="float").rename(c) for c in minute_EURUSD.columns]
@@ -62,7 +56,7 @@ feed = DataFeed(tech_history_streams)
 MT4_options = ExchangeOptions(trading_instruments=[EURUSD])
 
 MT4 = Exchange("simYunhe", service=execute_order, options=MT4_options)(
-    Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-EURUSD"),
+    Stream.source(minute_EURUSD['close'].tolist(), dtype="float").rename("USD-EURUSD"),
     Stream.source(minute_EURUSD['open_time'].tolist(), dtype="TimeStamp").rename("CurrentTime"),
     #Stream.source(price_history['close'].tolist(), dtype="float").rename("USD-USDJPY")
 )
@@ -76,11 +70,11 @@ portfolio = Portfolio(USD, [
 
 renderer_feed = DataFeed([
     Stream.source(list(minute_EURUSD["open_time"])).rename("date"),
-    Stream.source(list(price_history["open"]), dtype="float").rename("open"),
-    Stream.source(list(price_history["high"]), dtype="float").rename("high"),
-    Stream.source(list(price_history["low"]), dtype="float").rename("low"),
-    Stream.source(list(price_history["close"]), dtype="float").rename("close"), 
-    Stream.source(list(price_history["volume"]), dtype="float").rename("volume") 
+    Stream.source(list(minute_EURUSD["open"]), dtype="float").rename("open"),
+    Stream.source(list(minute_EURUSD["high"]), dtype="float").rename("high"),
+    Stream.source(list(minute_EURUSD["low"]), dtype="float").rename("low"),
+    Stream.source(list(minute_EURUSD["close"]), dtype="float").rename("close"), 
+    Stream.source(list(minute_EURUSD["volume"]), dtype="float").rename("volume") 
 ])
 
 ####################
@@ -98,19 +92,27 @@ env = mt4.create(
     min_periods=60,#warmup 1 hour
     window_size=60*3, #3 hours
     renderer_feed=renderer_feed,
-    renderer="screen-log"
+    renderer="matplot"
     )
 
-
-#%%run agent
-from tensortrade.agents import DQNAgent
-from tensortrade.agents import A2CAgent
+#%% env testing
 """
 done = False
 obs = env.reset()
 while not done:
     action = env.action_space.sample()
     obs, reward, done, info = env.step(action)
+"""
+#%%run TT agent
+from tensortrade.agents import DQNAgent
+from tensortrade.agents import A2CAgent
+
+agent = DQNAgent(env)
+agent.train(n_steps=60*24*200, n_episodes=100, rendrender_interval=50, save_every=1, save_path="agents/")
+
+
+#%% Run stable_baselines3 - pytorch agent
+
 """
 
 #from stable_baselines3.common.policies import MlpPolicy
@@ -121,7 +123,7 @@ model = A2C('MlpPolicy', env, verbose=1)
 model.learn(total_timesteps=200)
 model.save("TT_A2C")
 
-
+"""
 
 
 """

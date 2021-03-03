@@ -77,12 +77,12 @@ def _create_position_source(position: 'Position', include_worth: bool = True) ->
 
 def _create_portfolio_source(portfolio: 'Portfolio', include_worth: bool = False) -> 'List[Stream[float]]':
     streams = []
-    free_margin = Stream.sensor(portfolio, lambda p: p.free_margin, dtype='float').rename("portfolio_free_margin")
+    #free_margin = Stream.sensor(portfolio, lambda p: p.free_margin, dtype='float').rename("portfolio_free_margin")
     side = Stream.sensor(portfolio, lambda p: p.position_side_EURUSD, dtype='float').rename("portfolio_position_side_EURUSD")
     buying_power_ratio = Stream.sensor(portfolio, lambda p: p.buying_power_ratio, dtype='float').rename("portfolio_buying_power_ratio")
     profit_loss = Stream.sensor(portfolio, lambda p: p.profit_loss, dtype='float').rename("portfolio_profit_loss")
 
-    streams += [free_margin, side, buying_power_ratio, profit_loss]
+    streams += [buying_power_ratio, side, profit_loss]
     return streams
 
 def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
@@ -318,7 +318,7 @@ class TensorTradeObserver(Observer):
         self.history.push(obs_row)
 
         obs = self.history.observe()
-        #obs = obs.astype(self._observation_dtype) #force converting all obs to
+        obs = obs.astype(self._observation_dtype) #force converting all obs to
         return obs
 
     def has_next(self) -> bool:
