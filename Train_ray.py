@@ -104,8 +104,14 @@ from ray.tune.registry import register_env
 
 #register_env("TradingEnv", env)
 
-ray.init()
-
+ray.init(
+    _system_config={
+        "automatic_object_spilling_enabled": True,
+        "object_spilling_config": json.dumps(
+            {"type": "filesystem", "params": {"directory_path": "~/downloads/"}},
+        )
+    },
+)
 tune.run(
     "PPO",
     stop={"episode_reward_mean": 200},
@@ -534,3 +540,33 @@ COMMON_CONFIG: TrainerConfigDict = {
 }
 """
 #%%backup
+import ray
+ray.init(address='auto')
+from pprint import pprint
+pprint(ray.nodes())
+# %%
+from collections import Counter
+import socket
+import time
+
+import ray
+
+ray.init()
+
+@ray.remote
+def f():
+    time.sleep(0.001)
+    # Return IP address.
+    return socket.gethostbyname(socket.gethostname())
+
+object_ids = [f.remote() for _ in range(10000)]
+ip_addresses = ray.get(object_ids)
+print(Counter(ip_addresses))
+# %%
+import ray
+ray.init(address='127.0.0.1:6379')
+assert ray.is_initialized() == True
+
+ray.shutdown()
+assert ray.is_initialized() == False
+# %%
