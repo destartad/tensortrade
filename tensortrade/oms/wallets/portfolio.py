@@ -82,6 +82,7 @@ class Portfolio(Component, TimedIdentifiable):
         self._max_profit: float = 0.00
         self._max_loss: float = 0.00
         self._max_drawdown: float = 0.00
+        self._drawdown_pct: float = 0.00
 
         #TODO: calculation sum of open postion - margin/profit/swap/commission
         self._current_balanace = self._initial_balance
@@ -103,6 +104,10 @@ class Portfolio(Component, TimedIdentifiable):
     @property
     def max_drawdown_pct(self):
         return self._max_drawdown/self.net_worth
+
+    @property
+    def drawdown_pct(self):
+        return self._drawdown_pct
     
     @property
     def buying_power_ratio(self):
@@ -420,6 +425,7 @@ class Portfolio(Component, TimedIdentifiable):
 
         self._max_net_worth = max(float(self._max_net_worth), float(self.net_worth))
         self._max_drawdown = max((float(self._max_net_worth - float(self.net_worth))), self._max_drawdown)
+        self._drawdown_pct = (float(self._max_net_worth) - float(self.net_worth))/float(self._max_net_worth)
         
         if float(self.net_worth - self._initial_net_worth) >= 0.00:
             self._max_profit = max(self._max_profit, float(self.net_worth - self._initial_net_worth))

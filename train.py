@@ -96,7 +96,7 @@ env = mt4.create(
     )
 
 #%% env testing
-"""
+
 done = False
 obs = env.reset()
 while not done:
@@ -113,7 +113,7 @@ agent.train(n_steps=60*24*200, n_episodes=100, rendrender_interval=50, save_ever
 
 #%% Run stable_baselines3 - pytorch agent
 
-"""
+
 
 #from stable_baselines3.common.policies import MlpPolicy
 #from stable_baselines3.common import make_vec_env

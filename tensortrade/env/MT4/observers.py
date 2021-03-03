@@ -81,8 +81,9 @@ def _create_portfolio_source(portfolio: 'Portfolio', include_worth: bool = False
     side = Stream.sensor(portfolio, lambda p: p.position_side_EURUSD, dtype='float').rename("portfolio_position_side_EURUSD")
     buying_power_ratio = Stream.sensor(portfolio, lambda p: p.buying_power_ratio, dtype='float').rename("portfolio_buying_power_ratio")
     profit_loss = Stream.sensor(portfolio, lambda p: p.profit_loss, dtype='float').rename("portfolio_profit_loss")
+    drawdown_pct = Stream.sensor(portfolio, lambda p: p.drawdown_pct, dtype='float').rename("portfolio_drawdown_pct")
 
-    streams += [buying_power_ratio, side, profit_loss]
+    streams += [buying_power_ratio, side, profit_loss, drawdown_pct]
     return streams
 
 def _create_internal_streams(portfolio: 'Portfolio') -> 'List[Stream[float]]':
@@ -314,6 +315,8 @@ class TensorTradeObserver(Observer):
             self.renderer_history += [data["renderer"]]
 
         # Push new observation to observation history
+        # Not successfull: Try only observe external data, portfolio status only being observed by current
+        #obs_row = data["external"]
         obs_row = _dict_merge(data["external"], data["portfolio"])
         self.history.push(obs_row)
 
