@@ -596,7 +596,7 @@ class MatplotlibTradingChart(BaseRenderer):
     """
     def __init__(self,
                  display: bool = True,
-                 save_format: str = None,
+                 save_format: str = 'jpg',
                  path: str = 'charts',
                  filename_prefix: str = 'chart_') -> None:
         super().__init__()
