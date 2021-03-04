@@ -255,7 +255,10 @@ class MT4_return(TensorTradeRewardScheme):
         net_worths = [float(nw['net_worth']) for nw in portfolio.performance.values()][-(self._window_size + 1):]
         returns = pd.Series(net_worths).pct_change().dropna()
         risk_adjusted_return = self._return_algorithm(returns)
-        return float(risk_adjusted_return)
+        if np.isnan(risk_adjusted_return):
+            return float(0.00)
+        else:
+            return float(risk_adjusted_return)
 
 
 _registry = {
