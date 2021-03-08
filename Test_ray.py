@@ -12,6 +12,7 @@ from tensortrade.oms.services.execution.simulated_MT4 import execute_order
 from decimal import Decimal
 from ray.tune.registry import register_env
 import sys
+"""
 def create_env(config):
     def load_csv(filename):
         df = pd.read_csv(filename)
@@ -98,12 +99,15 @@ def create_env(config):
     return env
 
 register_env("TradingEnv", create_env)
-
+"""
 # %% resume
 import ray
 from ray import tune
+import json
 from ray.rllib.agents.ppo import PPOTrainer
+from ray.tune.analysis.experiment_analysis import ExperimentAnalysis
 
+"""
 ray.init(
     _system_config={
         "automatic_object_spilling_enabled": True,
@@ -112,46 +116,22 @@ ray.init(
         )
     },
 )
-analysis = tune.run(
-    "PPO",
-    name="PPO_vannila",
-    checkpoint_freq=10,
-    stop={
-      "episode_reward_mean": 3000
-    },
-    mode="max",
-    config={
-        "env": "TradingEnv",
-        "env_config": {
-            "window_size": 180
-        },
-        "log_level": "DEBUG",
-        "framework": "tfe",
-        "ignore_worker_failures": False,
-        "num_workers": 4,
-        "num_gpus": 0,
-        "clip_rewards": True,
-        "lr": 8e-6,
-        "lr_schedule": [
-            [0, 1e-1],
-            [int(1e2), 1e-2],
-            [int(1e3), 1e-3],
-            [int(1e4), 1e-4],
-            [int(1e5), 1e-5],
-            [int(1e6), 1e-6],
-            [int(1e7), 1e-7]
-        ],
-        "gamma": 0,
-        "observation_filter": "MeanStdFilter",
-        "lambda": 0.72,
-        "vf_loss_coeff": 0.5,
-        "entropy_coeff": 0.01
-    },
-    checkpoint_at_end=True
-)
+
+analysis = ExperimentAnalysis(
+    experiment_checkpoint_path="~/ray_results/PPO_vannila/experiment_state-2021-03-08_11-22-27.json")
 
 checkpoints = analysis.get_trial_checkpoints_paths(
     trial=analysis.get_best_trial("episode_reward_mean", mode="max"),
-    metric="episode_reward_mean"
+    metric="episode_reward_mean",
 )
 checkpoint_path = checkpoints[0][0]
+
+"""
+
+from ray.tune import Analysis
+analysis = ExperimentAnalysis(experiment_checkpoint_path="~/ray_results/PPO_vannila/experiment_state-2021-03-08_15-10-33.json")
+
+dfs = analysis.trial_dataframes
+[d.mean_accuracy.plot() for d in dfs.values()]
+
+# %%

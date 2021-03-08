@@ -96,11 +96,55 @@ env = mt4.create(
     )
 
 #%% env testing
+import ray
+from ray import tune
+from ray.rllib.agents.ppo import PPOTrainer
+
+
+agent = ppo.PPOTrainer(
+    env="TradingEnv",
+    config={
+        "env_config": {
+            "window_size": 60*3
+        },
+        "framework": "tfe",
+        "log_level": "DEBUG",
+        "ignore_worker_failures": True,
+        "num_workers": 1,
+        "num_gpus": 0,
+        "clip_rewards": True,
+        "lr": 8e-6,
+        "lr_schedule": [
+            [0, 1e-1],
+            [int(1e2), 1e-2],
+            [int(1e3), 1e-3],
+            [int(1e4), 1e-4],
+            [int(1e5), 1e-5],
+            [int(1e6), 1e-6],
+            [int(1e7), 1e-7]
+        ],
+        "gamma": 0,
+        "observation_filter": "MeanStdFilter",
+        "lambda": 0.72,
+        "vf_loss_coeff": 0.5,
+        "entropy_coeff": 0.01
+    }
+)
+agent.restore(checkpoint_path)
+
+#checkpoint_path = "~\\ray_results\\PPO_vannila\\PPO_TradingEnv_5fd6a_00000_0_2021-03-08_15-10-33\\checkpoint_316\\checkpoint-316"
+
+from ray.tune.analysis.experiment_analysis import ExperimentAnalysis
+
+agent = ExperimentAnalysis(experiment_checkpoint_path="~/ray_results/PPO_vannila/experiment_state-2021-03-08_15-10-33.json")
+agent = PPOTrainer(env=env)
+
+policy = agent.restore(checkpoint_path)
 
 done = False
 obs = env.reset()
 while not done:
-    action = env.action_space.sample()
+    action = policy.compute_action(obs)
     obs, reward, done, info = env.step(action)
     #print(shape(obs))
 
