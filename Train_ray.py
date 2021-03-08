@@ -99,6 +99,64 @@ def create_env(config):
 
 register_env("TradingEnv", create_env)
 
+# %% resume
+import ray
+from ray import tune
+from ray.rllib.agents.ppo import PPOTrainer
+
+ray.init(
+    _system_config={
+        "automatic_object_spilling_enabled": True,
+        "object_spilling_config": json.dumps(
+            {"type": "filesystem", "params": {"directory_path": "C:\\Users\\xianli\\Desktop\\Trade\\tmp"}},
+        )
+    },
+)
+analysis = tune.run(
+    "PPO",
+    name="PPO_vannila",
+    checkpoint_freq=10,
+    stop={
+      "episode_reward_mean": 3000
+    },
+    mode="min",
+    config={
+        "env": "TradingEnv",
+        "env_config": {
+            "window_size": 180
+        },
+        "log_level": "DEBUG",
+        "framework": "tfe",
+        "ignore_worker_failures": False,
+        "num_workers": 4,
+        "num_gpus": 0,
+        "clip_rewards": True,
+        "lr": 8e-6,
+        "lr_schedule": [
+            [0, 1e-1],
+            [int(1e2), 1e-2],
+            [int(1e3), 1e-3],
+            [int(1e4), 1e-4],
+            [int(1e5), 1e-5],
+            [int(1e6), 1e-6],
+            [int(1e7), 1e-7]
+        ],
+        "gamma": 0,
+        "observation_filter": "MeanStdFilter",
+        "lambda": 0.72,
+        "vf_loss_coeff": 0.5,
+        "entropy_coeff": 0.01
+    },
+    checkpoint_at_end=True
+)
+
+checkpoints = analysis.get_trial_checkpoints_paths(
+    trial=analysis.get_best_trial("episode_reward_mean"),
+    metric="episode_reward_mean"
+)
+checkpoint_path = checkpoints[0][0]
+
+"""
 #%% init ray env
 import ray
 from ray import tune
@@ -114,6 +172,7 @@ ray.init(
 )
 
 #%% fine tune hyperparameters
+
 analysis = tune.run(
     "PPO",
     stop={
@@ -156,54 +215,4 @@ checkpoints = analysis.get_trial_checkpoints_paths(
     metric="episode_reward_mean"
 )
 checkpoint_path = checkpoints[0][0]
-
-#%%
-import ray
-from ray import tune
-from ray.rllib.agents.ppo import PPOTrainer
-
-space = {"x": tune.uniform(0, 1)}
-tune.run("PPO", config=space, num_samples=10)
-# %% resume
-import ray
-from ray import tune
-from ray.rllib.agents.ppo import PPOTrainer
-
-ray.init(
-    _system_config={
-        "automatic_object_spilling_enabled": True,
-        "object_spilling_config": json.dumps(
-            {"type": "filesystem", "params": {"directory_path": "C:\\Users\\xianli\\Desktop\\Trade\\tmp"}},
-        )
-    },
-)
-analysis = tune.run(
-    "PPO",
-    checkpoint_freq=10,
-    local_dir="~/ray_results/PPO/PPO_TradingEnv_e7208_00000_0_2021-03-04_17-13-37",
-    resume=True,
-    stop={
-      "episode_reward_mean": 30
-    },
-    mode="min"
-    config={
-        "env": "TradingEnv",
-        "env_config": {
-            "window_size": 180
-        },
-        "log_level": "DEBUG",
-        "framework": "tfe",
-        "ignore_worker_failures": False,
-        "num_workers": 4,
-        "num_gpus": 0,
-    },
-    checkpoint_at_end=True
-)
-
-checkpoints = analysis.get_trial_checkpoints_paths(
-    trial=analysis.get_best_trial("episode_reward_mean"),
-    metric="episode_reward_mean"
-)
-checkpoint_path = checkpoints[0][0]
-
-# %%
+"""
