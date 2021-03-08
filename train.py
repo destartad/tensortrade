@@ -89,14 +89,36 @@ env = mt4.create(
     action_scheme="mt4", #TODO: override with own action;DONE
     reward_scheme="MT4", #TODO: override with own reward
     feed=feed,
-    min_periods=60,#warmup 1 hour
+    min_periods=60*3,#warmup 1 hour
     window_size=60*3, #3 hours
     renderer_feed=renderer_feed,
-    renderer="matplot"
+    renderer="matplot",
+    random_rolling_unit=60
     )
 
+done = False
+obs = env.reset()
+i = 0
+while not done:
+    action = env.action_space.sample()
+    obs, reward, done, info = env.step(action)
+    i += 1
+
+    if i > 5:
+        done = True 
+    #print(shape(obs))
+
+done = False
+obs = env.reset()
+while not done:
+    action = env.action_space.sample()
+    obs, reward, done, info = env.step(action)
+    i += 1
+    if i > 15:
+        done = True
+
 #%% env testing
-import ray
+"""import ray
 from ray import tune
 from ray.rllib.agents.ppo import PPOTrainer
 
@@ -141,15 +163,10 @@ agent = PPOTrainer(env=env)
 
 policy = agent.restore(checkpoint_path)
 
-done = False
-obs = env.reset()
-while not done:
-    action = policy.compute_action(obs)
-    obs, reward, done, info = env.step(action)
-    #print(shape(obs))
 
 
-"""
+
+
 from tensortrade.agents import DQNAgent
 from tensortrade.agents import A2CAgent
 

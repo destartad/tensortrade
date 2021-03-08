@@ -237,6 +237,7 @@ class TensorTradeObserver(Observer):
                  renderer_feed: 'DataFeed' = None,
                  window_size: int = 1,
                  min_periods: int = None,
+                 #seed_start: int = None,
                  **kwargs) -> None:
         internal_group = Stream.group(_create_internal_streams(portfolio)).rename("internal")
         external_group = Stream.group(feed.inputs).rename("external")
@@ -260,6 +261,7 @@ class TensorTradeObserver(Observer):
 
         self.window_size = window_size
         self.min_periods = min_periods
+        #self.seed_start = seed_start
 
         self._observation_dtype = kwargs.get('dtype', np.float32)
         self._observation_lows = kwargs.get('observation_lows', -np.inf)
@@ -292,6 +294,19 @@ class TensorTradeObserver(Observer):
         """Warms up the data feed.
         """
         if self.min_periods is not None:
+            """
+            if self.seed_start is not None:
+                seedX = np.random.randint(1,24*100) * self.seed_start
+                obs_row = _dict_merge(self.feed.next()["external"],self.feed.next()["portfolio"])
+                for _ in range(seedX):
+                    if self.has_next():
+                        self.history.push(obs_row)
+                for _ in range(seedX, self.min_periods+seedX):
+                    if self.has_next():
+                        obs_row = _dict_merge(self.feed.next()["external"],self.feed.next()["portfolio"])
+                        self.history.push(obs_row)
+            """
+            #else:
             for _ in range(self.min_periods):
                 if self.has_next():
                     obs_row = _dict_merge(self.feed.next()["external"],self.feed.next()["portfolio"])

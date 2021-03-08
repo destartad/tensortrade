@@ -111,7 +111,7 @@ ray.init(
     _system_config={
         "automatic_object_spilling_enabled": True,
         "object_spilling_config": json.dumps(
-            {"type": "filesystem", "params": {"directory_path": "C:\\Users\\xianli\\Desktop\\Trade\\tmp"}},
+            {"type": "filesystem", "params": {"directory_path": r"~/Downloads/tmp"}},
         )
     },
 )

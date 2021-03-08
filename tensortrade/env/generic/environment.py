@@ -64,6 +64,7 @@ class TradingEnv(gym.Env, TimeIndexed):
                  stopper: Stopper,
                  informer: Informer,
                  renderer: Renderer,
+                 random_rolling_unit: int,
                  **kwargs) -> None:
         super().__init__()
         self.clock = Clock()
@@ -74,6 +75,7 @@ class TradingEnv(gym.Env, TimeIndexed):
         self.stopper = stopper
         self.informer = informer
         self.renderer = renderer
+        self.random_rolling_unit = random_rolling_unit
 
         for c in self.components.values():
             c.clock = self.clock
@@ -145,9 +147,16 @@ class TradingEnv(gym.Env, TimeIndexed):
                 c.reset()
 
         obs = self.observer.observe(self)
-
+        """
+        if self.random_rolling_unit is not None:
+            seedX = np.random.randint(1,24*100) * self.random_rolling_unit
+            for _ in range(seedX):
+                self.clock.increment()
+        else:
+            self.clock.increment()
+        """
         self.clock.increment()
-
+        
         return obs
 
     def render(self, **kwargs) -> None:
