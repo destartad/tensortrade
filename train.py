@@ -93,29 +93,18 @@ env = mt4.create(
     window_size=60*3, #3 hours
     renderer_feed=renderer_feed,
     renderer="matplot",
-    random_rolling_unit=60
+    random_rolling_unit=60,
     )
 
 done = False
 obs = env.reset()
-i = 0
-while not done:
-    action = env.action_space.sample()
-    obs, reward, done, info = env.step(action)
-    i += 1
 
-    if i > 5:
-        done = True 
+while not done:
+    action = 11
+    obs, reward, done, info = env.step(action)
+
     #print(shape(obs))
 
-done = False
-obs = env.reset()
-while not done:
-    action = env.action_space.sample()
-    obs, reward, done, info = env.step(action)
-    i += 1
-    if i > 15:
-        done = True
 
 #%% env testing
 """import ray

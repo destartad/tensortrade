@@ -148,6 +148,7 @@ class TradingEnv(gym.Env, TimeIndexed):
 
         obs = self.observer.observe(self)
         """
+        Don't change here as step should be the actual step in clock
         if self.random_rolling_unit is not None:
             seedX = np.random.randint(1,24*100) * self.random_rolling_unit
             for _ in range(seedX):

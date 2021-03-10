@@ -237,7 +237,7 @@ class TensorTradeObserver(Observer):
                  renderer_feed: 'DataFeed' = None,
                  window_size: int = 1,
                  min_periods: int = None,
-                 #seed_start: int = None,
+                 random_rolling_unit: int = None,
                  **kwargs) -> None:
         internal_group = Stream.group(_create_internal_streams(portfolio)).rename("internal")
         external_group = Stream.group(feed.inputs).rename("external")
@@ -261,7 +261,7 @@ class TensorTradeObserver(Observer):
 
         self.window_size = window_size
         self.min_periods = min_periods
-        #self.seed_start = seed_start
+        self.random_rolling_unit = random_rolling_unit
 
         self._observation_dtype = kwargs.get('dtype', np.float32)
         self._observation_lows = kwargs.get('observation_lows', -np.inf)
@@ -295,8 +295,8 @@ class TensorTradeObserver(Observer):
         """
         if self.min_periods is not None:
             """
-            if self.seed_start is not None:
-                seedX = np.random.randint(1,24*100) * self.seed_start
+            if self.random_rolling_unit is not None:
+                seedX = np.random.randint(1,24*100) * self.random_rolling_unit
                 obs_row = _dict_merge(self.feed.next()["external"],self.feed.next()["portfolio"])
                 for _ in range(seedX):
                     if self.has_next():
@@ -305,8 +305,8 @@ class TensorTradeObserver(Observer):
                     if self.has_next():
                         obs_row = _dict_merge(self.feed.next()["external"],self.feed.next()["portfolio"])
                         self.history.push(obs_row)
-            """
-            #else:
+            else:
+                """
             for _ in range(self.min_periods):
                 if self.has_next():
                     obs_row = _dict_merge(self.feed.next()["external"],self.feed.next()["portfolio"])
@@ -354,4 +354,8 @@ class TensorTradeObserver(Observer):
         self.renderer_history = []
         self.history.reset()
         self.feed.reset()
+        if self.random_rolling_unit is not None:
+            seedX = np.random.randint(1,24*100) * self.random_rolling_unit
+            for _ in range(seedX):
+                self.feed.next()
         self.warmup()

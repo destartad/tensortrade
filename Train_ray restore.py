@@ -194,10 +194,11 @@ env = mt4.create(
     action_scheme="mt4", #TODO: override with own action;DONE
     reward_scheme="MT4", #TODO: override with own reward
     feed=feed,
-    min_periods=60,#warmup 1 hour
+    min_periods=60*3,#warmup 3 hour
     window_size=60*3, #3 hours
     renderer_feed=renderer_feed,
     renderer="matplot"
+    random_rolling_unit=60,#randomly starting time
     )
 
 done = False

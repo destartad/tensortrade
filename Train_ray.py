@@ -93,7 +93,8 @@ def create_env(config):
         min_periods=60*3,#warmup 1 hour
         window_size=60*3, #3 hours
         renderer_feed=renderer_feed,
-        renderer="matplot"
+        renderer="matplot",
+        random_rolling_unit=60,#randomly starting time
         )
     return env
 
@@ -104,9 +105,12 @@ import ray
 from ray import tune
 from ray.rllib.agents.ppo import PPOTrainer
 
+ray.shutdown()
 ray.init(
     _system_config={
         "automatic_object_spilling_enabled": True,
+        #"object_store_memory": 1024*1024*500,
+        "min_spilling_size": 100 * 1024 * 1024,
         "object_spilling_config": json.dumps(
             {"type": "filesystem", "params": {"directory_path": "C:\\Users\\xianli\\Desktop\\Trade\\tmp"}},
         )
@@ -120,6 +124,8 @@ analysis = tune.run(
       "episode_reward_mean": 3000
     },
     mode="max",
+    restore=r"C:\Users\xianli\ray_results\PPO_vannila\PPO_TradingEnv_63f13_00000_0_2021-03-09_11-20-25\checkpoint_410\checkpoint-410",
+    #resume=True,
     config={
         "env": "TradingEnv",
         "env_config": {

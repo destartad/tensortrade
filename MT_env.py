@@ -92,7 +92,8 @@ def create_env(config):
         min_periods=60*3,#warmup 1 hour
         window_size=60*3, #3 hours
         renderer_feed=renderer_feed,
-        renderer="matplot"
+        renderer="matplot",
+        random_rolling_unit=60
         )
     return env
 
