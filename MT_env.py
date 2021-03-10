@@ -9,7 +9,6 @@ from tensortrade.oms.exchanges import Exchange,ExchangeOptions
 from tensortrade.oms.instruments.exchange_pair import ExchangePair
 from tensortrade.oms.services.execution.simulated_MT4 import execute_order
 from decimal import Decimal
-from ray.tune.registry import register_env
 import sys
 def create_env(config):
     def load_csv(filename):
@@ -89,12 +88,12 @@ def create_env(config):
         action_scheme="mt4", #TODO: override with own action;DONE
         reward_scheme="MT4", #TODO: override with own reward
         feed=feed,
-        min_periods=60*3,#warmup 1 hour
-        window_size=60*3, #3 hours
+        min_periods=1,#warmup 1 hour
+        window_size=1, #3 hours
         renderer_feed=renderer_feed,
         renderer="matplot",
         random_rolling_unit=60
         )
     return env
 
-register_env("TradingEnv", create_env)
+#register_env("TradingEnv", create_env)

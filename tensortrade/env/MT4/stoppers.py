@@ -32,5 +32,5 @@ class MaxLossStopper(Stopper):
         c1 = env.action_scheme.portfolio.profit_loss >= self.max_allowed_loss
         c2 = not env.observer.has_next()
         c3 = env.action_scheme.portfolio.max_drawdown_pct >= self.max_allowed_drawdown_pct
-        c4 = env.clock.step >= 24*60*2
-        return c1 or c2 or c3 or c4
+        #c4 = env.clock.step >= 24*60*2
+        return c1 or c2 or c3 #or c4

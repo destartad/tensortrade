@@ -129,7 +129,7 @@ class TradingEnv(gym.Env, TimeIndexed):
 
         self.clock.increment()
 
-        return obs, reward, done, info
+        return obs[-1], reward, done, info
 
     def reset(self) -> 'np.array':
         """Resets the environment.
@@ -158,7 +158,7 @@ class TradingEnv(gym.Env, TimeIndexed):
         """
         self.clock.increment()
         
-        return obs
+        return obs[-1]
 
     def render(self, **kwargs) -> None:
         """Renders the environment."""

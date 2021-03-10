@@ -275,7 +275,8 @@ class TensorTradeObserver(Observer):
         self._observation_space = Box(
             low=self._observation_lows,
             high=self._observation_highs,
-            shape=(self.window_size, n_features),
+            #shape=(self.window_size, n_features),
+            shape=(n_features,),
             dtype=self._observation_dtype
         )
 
@@ -337,6 +338,7 @@ class TensorTradeObserver(Observer):
 
         obs = self.history.observe()
         obs = obs.astype(self._observation_dtype) #force converting all obs to
+        
         return obs
 
     def has_next(self) -> bool:
