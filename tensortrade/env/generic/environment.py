@@ -65,6 +65,7 @@ class TradingEnv(gym.Env, TimeIndexed):
                  informer: Informer,
                  renderer: Renderer,
                  random_rolling_unit: int,
+                 attention_support: bool,
                  **kwargs) -> None:
         super().__init__()
         self.clock = Clock()
@@ -76,6 +77,7 @@ class TradingEnv(gym.Env, TimeIndexed):
         self.informer = informer
         self.renderer = renderer
         self.random_rolling_unit = random_rolling_unit
+        self.attention_support = attention_support
 
         for c in self.components.values():
             c.clock = self.clock
@@ -129,7 +131,10 @@ class TradingEnv(gym.Env, TimeIndexed):
 
         self.clock.increment()
 
-        return obs[-1], reward, done, info
+        if self.attention_support == True:
+            return obs[-1], reward, done, info
+        else:
+            return obs, reward, done, info
 
     def reset(self) -> 'np.array':
         """Resets the environment.
@@ -158,7 +163,10 @@ class TradingEnv(gym.Env, TimeIndexed):
         """
         self.clock.increment()
         
-        return obs[-1]
+        if self.attention_support == True:
+            return obs[-1]
+        else:
+            return obs
 
     def render(self, **kwargs) -> None:
         """Renders the environment."""

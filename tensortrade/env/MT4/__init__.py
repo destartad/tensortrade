@@ -22,6 +22,7 @@ def create(portfolio: 'Portfolio',
            window_size: int = 1,
            min_periods: int = None,
            random_rolling_unit: int = None,
+           attention_support: bool = False,
            **kwargs) -> TradingEnv:
     """Creates the default `TradingEnv` of the project to be used in training
     RL agents.
@@ -61,7 +62,8 @@ def create(portfolio: 'Portfolio',
         renderer_feed=kwargs.get("renderer_feed", None),
         window_size=window_size,
         min_periods=min_periods,
-        random_rolling_unit=random_rolling_unit
+        random_rolling_unit=random_rolling_unit,
+        attention_support=attention_support
     )
 
     stopper = stoppers.MaxLossStopper(
@@ -89,6 +91,7 @@ def create(portfolio: 'Portfolio',
         stopper=kwargs.get("stopper", stopper),
         informer=kwargs.get("informer", informers.TensorTradeInformer()),
         renderer=renderer,
-        random_rolling_unit=random_rolling_unit
+        random_rolling_unit=random_rolling_unit,
+        attention_support=attention_support
     )
     return env

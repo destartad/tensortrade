@@ -10,7 +10,7 @@ from tensortrade.oms.instruments.exchange_pair import ExchangePair
 from tensortrade.oms.services.execution.simulated_MT4 import execute_order
 from decimal import Decimal
 import sys
-def create_env(config):
+def create_env():
     def load_csv(filename):
         df = pd.read_csv(filename)
         #minute_EURUSD = minute_EURUSD.set_index('open_time')
@@ -37,12 +37,13 @@ def create_env(config):
     #%%
     minute_EURUSD = minute_EURUSD.loc[minute_EURUSD['weekday']!=6]
     price_history = minute_EURUSD[['open','high','low','close','volume', 'weekofyear', 'month', 'weekday', 'day', 'hour', 'minute']]
+    price_history_withoutV = minute_EURUSD[['open','high','low','close', 'weekofyear', 'month', 'weekday', 'day', 'hour', 'minute']]
 
     minute_EURUSD_streams = [
         Stream.source(list(minute_EURUSD[c]), dtype="float").rename(c) for c in minute_EURUSD.columns]
 
     tech_history_streams = [
-        Stream.source(list(price_history[c]), dtype="float").rename(c) for c in price_history.columns]
+        Stream.source(list(price_history_withoutV[c]), dtype="float").rename(c) for c in price_history_withoutV.columns]
 
     feed = DataFeed(tech_history_streams)
 
@@ -88,11 +89,12 @@ def create_env(config):
         action_scheme="mt4", #TODO: override with own action;DONE
         reward_scheme="MT4", #TODO: override with own reward
         feed=feed,
-        min_periods=1,#warmup 1 hour
-        window_size=1, #3 hours
+        min_periods=180,
+        window_size=180,
         renderer_feed=renderer_feed,
         renderer="matplot",
-        random_rolling_unit=60
+        random_rolling_unit=60,
+        attention_support=False
         )
     return env
 

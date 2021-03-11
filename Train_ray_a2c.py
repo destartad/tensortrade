@@ -29,7 +29,7 @@ analysis = tune.run(
       "episode_reward_mean": 3000
     },
     mode="max",
-    #restore=r"C:\Users\xianli\ray_results\PPO_vannila\PPO_TradingEnv_63f13_00000_0_2021-03-09_11-20-25\checkpoint_410\checkpoint-410",
+    restore=r"C:\Users\xianli\ray_results\A2C_exp\A2C_TradingEnv_67d34_00000_0_2021-03-10_15-15-34\checkpoint_5021\checkpoint-5021",
     #resume=True,
     config={
         "env": "TradingEnv",

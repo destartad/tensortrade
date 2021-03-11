@@ -238,6 +238,7 @@ class TensorTradeObserver(Observer):
                  window_size: int = 1,
                  min_periods: int = None,
                  random_rolling_unit: int = None,
+                 attention_support: bool = False,
                  **kwargs) -> None:
         internal_group = Stream.group(_create_internal_streams(portfolio)).rename("internal")
         external_group = Stream.group(feed.inputs).rename("external")
@@ -272,13 +273,25 @@ class TensorTradeObserver(Observer):
         initial_obs = _dict_merge(self.feed.next()["external"], self.feed.next()["portfolio"])
         n_features = len(initial_obs.keys())
 
-        self._observation_space = Box(
-            low=self._observation_lows,
-            high=self._observation_highs,
-            #shape=(self.window_size, n_features),
-            shape=(n_features,),
-            dtype=self._observation_dtype
-        )
+        self.attention_support = attention_support
+
+        if self.attention_support == True:
+
+            self._observation_space = Box(
+                low=self._observation_lows,
+                high=self._observation_highs,
+                #shape=(self.window_size, n_features),
+                shape=(n_features,),
+                dtype=self._observation_dtype
+            )
+        else:
+            self._observation_space = Box(
+                low=self._observation_lows,
+                high=self._observation_highs,
+                shape=(self.window_size, n_features),
+                #shape=(n_features,),
+                dtype=self._observation_dtype
+            )
 
         self.feed = self.feed.attach(portfolio)
 
