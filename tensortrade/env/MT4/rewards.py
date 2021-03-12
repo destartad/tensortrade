@@ -235,9 +235,11 @@ class MT4_return(TensorTradeRewardScheme):
             return_algorithm = omega_ratio
 
         self._return_algorithm = return_algorithm
-        self._risk_free_rate = self.default('risk_free_rate', risk_free_rate)
-        self._target_returns = self.default('target_returns', target_returns)
+        #self._risk_free_rate = self.default('risk_free_rate', risk_free_rate)
+        #self._target_returns = self.default('target_returns', target_returns)
         self._window_size = self.default('window_size', window_size)
+        self._step = 0
+        self._position_open = 0
 
     def get_reward(self, portfolio: 'Portfolio') -> float:
         """Computes the reward corresponding to the selected risk-adjusted return metric.
@@ -252,19 +254,58 @@ class MT4_return(TensorTradeRewardScheme):
         float
             The reward corresponding to the selected risk-adjusted return metric.
         """
-        net_worths = [float(nw['net_worth']) for nw in portfolio.performance.values()][-(self._window_size + 1):]
-        returns = pd.Series(net_worths).pct_change().dropna()
-        risk_adjusted_return = self._return_algorithm(returns)
-        if math.isnan(risk_adjusted_return) or math.isinf(risk_adjusted_return):
-            return float(0.00)
+        
+        if not portfolio.positions and self._position_open == 0: #flat time reward 0
+            return float(-1)
+
+        elif portfolio.positions and self._position_open == 0: #when open, reward 0
+            self._position_open = 1
+            self._position_open_step = self.clock.step
+            return float(0)
+        
+        elif portfolio.positions and self._position_open == 1:
+            return float(0)
+
+        elif not portfolio.positions and self._position_open == 1:
+            self._position_open = 0
+            self._position_close_step = self.clock.step
+
+            net_worths = [float(nw['net_worth']) for nw in portfolio.performance.values()][self._position_open_step - 1:self._position_close_step + 1]
+            returns = pd.Series(net_worths).pct_change().dropna()
+            risk_adjusted_return = self._return_algorithm(returns)
+            if math.isnan(risk_adjusted_return) or math.isinf(risk_adjusted_return):
+                return float(0.00)
+            else:
+                return float(risk_adjusted_return)
+"""
+class Time_profit(TensorTradeRewardScheme):
+    def __init__(self, window_size: int = 1):
+        self._window_size = self.default('window_size', window_size)
+        self._open_position = 0
+
+    def get_reward(self, portfolio: 'Portfolio', ) -> float:
+        if portfolio.positions:
+            self._open_position = 1
         else:
-            return float(risk_adjusted_return)
+            self._open_position = 0
+        
+        if portfolio.buying_power_ratio == 1 
+            return -1
 
+            if portfolio.positions
 
+        elif portfolio.performance[self.clock.step] == : 
+            netWorth_gain/(len(portfolio.performance) - 1)
+        return self._window_size
+
+        if portfolio.buying_power_ratio == 1 
+            self._last_position_open_step = self.clock.step
+"""
 _registry = {
     'simple': SimpleProfit,
     'risk-adjusted': RiskAdjustedReturns,
-    'MT4': MT4_return
+    'MT4': MT4_return,
+    #'Time_profit': Time_profit
 }
 
 

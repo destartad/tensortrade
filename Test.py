@@ -97,7 +97,7 @@ def calc_swap_weekday(filled_time,current_time):
 
 x = calc_swap_weekday(filled_time, current_time)
 print(deal)
-"""
+
 
 from ray import tune
 
@@ -128,3 +128,13 @@ print("Best config: ", analysis.get_best_config(
 
 # Get a dataframe for analyzing trial results.
 df = analysis.results_df
+"""
+from empyrical import sortino_ratio
+import pandas as pd
+
+
+net_worths = [10000, 9800, 9600, 11000, 9700, 9000, 10000, 11000, 12000, 10000]
+returns = pd.Series(net_worths).pct_change().dropna()
+print(returns)
+risk_adjusted_return = sortino_ratio(returns)
+print(risk_adjusted_return)
