@@ -261,10 +261,10 @@ class MT4_return(TensorTradeRewardScheme):
         elif portfolio.positions and self._position_open == 0: #when open, reward 0
             self._position_open = 1
             self._position_open_step = self.clock.step
-            return float(0)
+            return float(-1)
         
         elif portfolio.positions and self._position_open == 1:
-            return float(0)
+            return float(-1)
 
         elif not portfolio.positions and self._position_open == 1:
             self._position_open = 0
@@ -276,7 +276,7 @@ class MT4_return(TensorTradeRewardScheme):
             if math.isnan(risk_adjusted_return) or math.isinf(risk_adjusted_return):
                 return float(0.00)
             else:
-                return float(risk_adjusted_return)
+                return float(risk_adjusted_return) * (net_worths[-1] - net_worths[0])
 """
 class Time_profit(TensorTradeRewardScheme):
     def __init__(self, window_size: int = 1):
