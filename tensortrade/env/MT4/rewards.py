@@ -326,6 +326,7 @@ class Max_profit_return(TensorTradeRewardScheme):
         net_worths = [float(nw['net_worth']) for nw in portfolio.performance.values()][-2:]
         returns = pd.Series(net_worths).diff().dropna()
         weightFactor = 0
+        position_net_worths = []
         if portfolio.positions and self._position_open == 0: #when open, reward 0
             self._position_open = 1
             self._position_open_step = self.clock.step           
@@ -342,6 +343,9 @@ class Max_profit_return(TensorTradeRewardScheme):
  
         returns = returns + weightFactor
         return float(returns)
+    
+    def reset(self):
+        self._position_open = 0
 
 """
 class Time_profit(TensorTradeRewardScheme):
