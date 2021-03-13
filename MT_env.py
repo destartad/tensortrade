@@ -89,7 +89,7 @@ def create_env(config):
         #exchange=simYunHe,
         portfolio=portfolio,
         action_scheme="mt4", #TODO: override with own action;DONE
-        reward_scheme="MT4", #TODO: override with own reward
+        reward_scheme="Max_profit", #TODO: override with own reward
         feed=feed,
         min_periods=180,
         window_size=180,

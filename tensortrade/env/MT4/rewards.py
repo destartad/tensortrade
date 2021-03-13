@@ -215,6 +215,11 @@ class PBR(TensorTradeRewardScheme):
 from empyrical import sortino_ratio, calmar_ratio, omega_ratio, sharpe_ratio
 
 class MT4_return(TensorTradeRewardScheme):
+    """Design goal of rewards
+    reward on position close 
+    
+    """
+    
     def __init__(self,
                  return_algorithm: str = 'sortino',
                  risk_free_rate: float = 0.03,
@@ -277,6 +282,67 @@ class MT4_return(TensorTradeRewardScheme):
                 return float(0.00)
             else:
                 return float(abs(risk_adjusted_return) * (net_worths[-1] - net_worths[0])/len(returns))
+
+class Max_profit_return(TensorTradeRewardScheme):
+    def __init__(self,
+                 return_algorithm: str = 'sortino',
+                 risk_free_rate: float = 0.03,
+                 target_returns: float = 0.1,
+                 window_size: int = 15) -> None:
+        
+        algorithm = self.default('return_algorithm', return_algorithm)
+ 
+        assert algorithm in ['sharpe', 'sortino', 'calmar', 'omega']
+ 
+        if algorithm == 'sharpe':
+            return_algorithm = sharpe_ratio
+        elif algorithm == 'sortino':
+            return_algorithm = sortino_ratio
+        elif algorithm == 'calmar':
+            return_algorithm = calmar_ratio
+        elif algorithm == 'omega':
+            return_algorithm = omega_ratio
+ 
+        self._return_algorithm = return_algorithm
+        #self._risk_free_rate = self.default('risk_free_rate', risk_free_rate)
+        #self._target_returns = self.default('target_returns', target_returns)
+        self._window_size = self.default('window_size', window_size)
+        self._step = 0
+        self._position_open = 0
+ 
+    def get_reward(self, portfolio: 'Portfolio') -> float:
+        """Computes the reward corresponding to the selected risk-adjusted return metric.
+ 
+        Parameters
+        ----------
+        portfolio : `Portfolio`
+            The current portfolio being used by the environment.
+ 
+        Returns
+        -------
+        float
+            The reward corresponding to the selected risk-adjusted return metric.
+        """
+        net_worths = [float(nw['net_worth']) for nw in portfolio.performance.values()][-2:]
+        returns = pd.Series(net_worths).diff().dropna()
+        weightFactor = 0
+        if portfolio.positions and self._position_open == 0: #when open, reward 0
+            self._position_open = 1
+            self._position_open_step = self.clock.step           
+ 
+        elif not portfolio.positions and self._position_open == 1: #on close
+            self._position_open = 0
+            self._position_close_step = self.clock.step
+            position_net_worths = [float(nw['net_worth']) for nw in portfolio.performance.values()][self._position_open_step - 1:self._position_close_step + 1]
+            #position_returns = pd.Series(position_net_worths).diff().dropna()
+            if (max(position_net_worths) - min(position_net_worths))/max(position_net_worths) <= 0.2 and (position_net_worths[-1] - position_net_worths[0]) > 0:
+                weightFactor = 0.2*(position_net_worths[-1] - position_net_worths[0])
+            elif (max(position_net_worths) - min(position_net_worths))/max(position_net_worths) <= 0.3 and (position_net_worths[-1] - position_net_worths[0]) > 0:
+                weightFactor = 0.1*(position_net_worths[-1] - position_net_worths[0])
+ 
+        returns = returns + weightFactor
+        return float(returns)
+
 """
 class Time_profit(TensorTradeRewardScheme):
     def __init__(self, window_size: int = 1):
@@ -305,7 +371,8 @@ _registry = {
     'simple': SimpleProfit,
     'risk-adjusted': RiskAdjustedReturns,
     'MT4': MT4_return,
-    #'Time_profit': Time_profit
+    #'Time_profit': Time_profit,
+    'Max_profit': Max_profit_return,
 }
 
 

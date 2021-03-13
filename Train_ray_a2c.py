@@ -29,7 +29,7 @@ analysis = tune.run(
     name="A2C_exp",
     checkpoint_freq=100,
     stop={
-      "episode_reward_mean": 30000
+      "episode_reward_mean": 50000
     },
     mode="max",
     #restore=r"C:\Users\xianli\ray_results\A2C_exp\A2C_TradingEnv_67d34_00000_0_2021-03-10_15-15-34\checkpoint_5021\checkpoint-5021",
