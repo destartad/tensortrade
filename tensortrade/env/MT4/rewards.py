@@ -276,7 +276,7 @@ class MT4_return(TensorTradeRewardScheme):
             if math.isnan(risk_adjusted_return) or math.isinf(risk_adjusted_return):
                 return float(0.00)
             else:
-                return float(risk_adjusted_return) * (net_worths[-1] - net_worths[0])
+                return float(abs(risk_adjusted_return) * (net_worths[-1] - net_worths[0])/len(returns))
 """
 class Time_profit(TensorTradeRewardScheme):
     def __init__(self, window_size: int = 1):

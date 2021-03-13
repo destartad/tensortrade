@@ -10,7 +10,7 @@ from tensortrade.oms.instruments.exchange_pair import ExchangePair
 from tensortrade.oms.services.execution.simulated_MT4 import execute_order
 from decimal import Decimal
 import sys
-def create_env():
+def create_env(config):
     def load_csv(filename):
         df = pd.read_csv(filename)
         #minute_EURUSD = minute_EURUSD.set_index('open_time')
@@ -30,7 +30,9 @@ def create_env():
         #df=df.add_prefix("EUR:")
         return df
 
-    minute_EURUSD = load_csv("C:\\Users\\xianli\\Desktop\\Trade\\MyProject\\tensortrade\\data\\EURUSD_1minute.csv")
+    #minute_EURUSD = load_csv("C:\\Users\\xianli\\Desktop\\Trade\\MyProject\\tensortrade\\data\\EURUSD_1minute.csv")
+    minute_EURUSD = load_csv("~/Documents/GitHub/tensortrade/tensortrade/data/EURUSD_1minute.csv")
+
     #minute_EURUSD = load_csv('y.csv')
     #minute_EURUSD_ta = ta.add_all_ta_features(minute_EURUSD, 'open', 'high', 'low', 'close', 'volume', fillna=True)
 

@@ -19,7 +19,7 @@ ray.init(
         #"object_store_memory": 1024*1024*1500,
         "min_spilling_size": 100 * 1024 * 1024,
         "object_spilling_config": json.dumps(
-            {"type": "filesystem", "params": {"directory_path": "C:\\Users\\xianli\\Desktop\\Trade\\tmp"}},
+            {"type": "filesystem", "params": {"directory_path": "~/downloads/tmp"}},
         )
     },
 )
