@@ -1,3 +1,13 @@
+"""
+import json
+
+a = {'_action': 'OPEN_TRADES', '_trades': {69206: {'_magic': 0, '_symbol': 'EURUSD', '_lots': 0.01, '_type': 1, '_open_price': 1.19258, '_open_time': '2021.03.15 16:03:50', '_SL': 0.0, '_TP': 0.0, '_swap': 0.0, '_pnl': 0.56, '_comment': ''}, 69198: {'_magic': 0, '_symbol': 'EURUSD', '_lots': 0.01, '_type': 0, '_open_price': 1.19278, '_open_time': '2021.03.15 14:39:30', '_SL': 0.0, '_TP': 0.0, '_swap': 0.0, '_pnl': -1.0, '_comment': ''}}}
+b = json.dumps(a)
+
+print(b)
+"""
+
+
 import zmq
 
 from connector.DWX_ZeroMQ_Connector_v2_0_1_RC8_Lear import DWX_ZeroMQ_Connector
@@ -14,8 +24,8 @@ while 1 == 1:
     time.sleep(second)
     print('do action')
 
-    positions = _live_mt4_exchange._DWX_MTX_GET_ALL_OPEN_TRADES_()
-    #print(positions)
+    positions = _live_mt4_exchange._DWX_ZMQ_Poll_Data_()
+    print(positions)
 
 """
 while True:
