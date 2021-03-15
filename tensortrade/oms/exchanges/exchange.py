@@ -194,3 +194,80 @@ class Exchange(Component, TimedIdentifiable):
 
         if trade:
             order.fill(trade)
+
+
+from connector.DWX_ZeroMQ_Connector_v2_0_1_RC8_Lear import DWX_ZeroMQ_Connector
+
+class Exchange_live_mt4(Component, TimedIdentifiable):
+
+    registered_name = "exchanges"
+
+    def __init__(self,
+                 name: str,
+                 service: Callable,
+                 options: ExchangeOptions = None):
+        super().__init__()
+        self.name = name
+        self._service = service
+        self.options = options if options else ExchangeOptions()
+        self._exchange = DWX_ZeroMQ_Connector()
+        self._price_streams = {}
+        
+    def __call__(self, *args):
+        """Sets up the price streams used to generate the prices.
+
+        Parameters
+        ----------
+        *streams
+            The positional arguments each being a price stream.
+
+        Returns
+        -------
+        `Exchange`
+            The exchange the price streams were passed in for.
+        """
+        for key in args:
+            self._price_streams[key] = self._exchange._DWX_MTX_SUBSCRIBE_MARKETDATA_(_symbol=key) 
+
+        done = False
+        while not done:
+            
+
+        return self
+
+    def is_pair_tradable(self, trading_pair: 'TradingPair') -> bool:
+        """Whether or not the specified trading pair is tradable on this
+        exchange.
+
+        Parameters
+        ----------
+        trading_pair : `TradingPair`
+            The trading pair to test the tradability of.
+
+        Returns
+        -------
+        bool
+            Whether or not the pair is tradable.
+        """
+        return str(trading_pair) in self._price_streams.keys()
+
+    def execute_order(self, order: 'Order', portfolio: 'Portfolio') -> None:
+        """Execute an order on the exchange.
+
+        Parameters
+        ----------
+        order: `Order`
+            The order to execute.
+        portfolio : `Portfolio`
+            The portfolio to use.
+        """
+        trade = self._service(
+            order=order,
+            cash_wallet=portfolio.get_wallet(self.id, order.pair.base),
+            portfolio=portfolio,
+            options=self.options,
+            clock=self.clock,
+        )
+
+        if trade:
+            order.fill(trade)
