@@ -1,3 +1,10 @@
+import zmq
+
+from connector.DWX_ZeroMQ_Connector_v2_0_1_RC8_Lear import DWX_ZeroMQ_Connector
+_live_mt4_exchange = DWX_ZeroMQ_Connector()
+
+
+
 """
 s = "{0:." + str("5") + "f}" + " {1}"
 s = s.format(0.2, "EURUSD")
@@ -128,7 +135,7 @@ print("Best config: ", analysis.get_best_config(
 
 # Get a dataframe for analyzing trial results.
 df = analysis.results_df
-"""
+
 from empyrical import sortino_ratio
 import pandas as pd
 
@@ -137,4 +144,4 @@ net_worths = [10000, 9800, 9600, 11000, 9700, 9000, 10000, 11000, 12000, 10000]
 returns = pd.Series(net_worths).pct_change().dropna()
 print(returns)
 risk_adjusted_return = sortino_ratio(returns)
-print(risk_adjusted_return)
+print(risk_adjusted_return)"""

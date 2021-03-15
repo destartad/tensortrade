@@ -64,8 +64,8 @@ class TradingEnv(gym.Env, TimeIndexed):
                  stopper: Stopper,
                  informer: Informer,
                  renderer: Renderer,
-                 random_rolling_unit: int,
-                 attention_support: bool,
+                 random_rolling_unit: int = 0,
+                 attention_support: bool = False,
                  **kwargs) -> None:
         super().__init__()
         self.clock = Clock()
