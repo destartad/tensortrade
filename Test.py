@@ -2,14 +2,31 @@ import zmq
 
 from connector.DWX_ZeroMQ_Connector_v2_0_1_RC8_Lear import DWX_ZeroMQ_Connector
 _live_mt4_exchange = DWX_ZeroMQ_Connector()
+import time
 
 
+def sleeptime(hour, min, sec):
+    return hour * 3600 + min * 60 + sec
+
+
+second = sleeptime(0, 0, 3)
+while 1 == 1:
+    time.sleep(second)
+    print('do action')
+
+    positions = _live_mt4_exchange._DWX_MTX_GET_ALL_OPEN_TRADES_()
+    #print(positions)
 
 """
+while True:
+    _live_mt4_exchange._DWX_ZMQ_HEARTBEAT_()
+
 s = "{0:." + str("5") + "f}" + " {1}"
 s = s.format(0.2, "EURUSD")
 
-print(s)"""
+print(s)
+
+"""
 
 """
 from decimal import Decimal, ROUND_DOWN

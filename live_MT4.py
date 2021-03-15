@@ -12,16 +12,29 @@ from tensortrade.oms.services.execution.live_MT4 import execute_order
 from decimal import Decimal
 import sys
 
-"""
 from connector.DWX_ZeroMQ_Connector_v2_0_1_RC8_Lear import DWX_ZeroMQ_Connector
 _exchange = DWX_ZeroMQ_Connector()
-"""
 
-exchange = Exchange_live_mt4("demo_MT4",service=execute_order)("EURUSD")
+_exchange._DWX_ZMQ_SHUTDOWN_()
 
-positions = exchange._exchange._DWX_MTX_GET_ALL_OPEN_TRADES_()
 
+_exchange1 = DWX_ZeroMQ_Connector()
+
+positions = _exchange1._DWX_MTX_GET_ALL_OPEN_TRADES_()
+account_info = _exchange1._DWX_MTX_GET_ACCOUNT_INFO_()
 print(positions)
+
+
+print(account_info)
+"""
+exchange = Exchange_live_mt4("demo_MT4",service=execute_order) #("EURUSD")
+
+#positions = exchange._exchange._DWX_MTX_GET_ALL_OPEN_TRADES_()
+
+#print(positions
+
+while not True:
+    1
 
 portfolio = Portfolio(USD, [
     Wallet(MT4, cash_deposit * USD)])
@@ -37,7 +50,7 @@ env = mt4.create(
     renderer="empty",
     )
 
-
+"""
 
 '''
 done=False
@@ -97,3 +110,5 @@ while not done:
     #print(shape(obs))
 
 """
+
+# %%
