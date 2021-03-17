@@ -212,22 +212,42 @@ class Exchange_live_mt4(Component, TimedIdentifiable):
         self.options = options if options else ExchangeOptions()
         self._exchange = DWX_ZeroMQ_Connector()
         self._price_streams = {}
-        position = self._exchange._DWX_MTX_GET_ALL_OPEN_TRADES_()
-        print(position)
-    """ 
+    
+    
     def __call__(self, *args):
-        position = self._exchange._DWX_MTX_GET_ALL_OPEN_TRADES_()
-        print(position)
+
         for key in args:
-            self._exchange._DWX_MTX_SUBSCRIBE_MARKETDATA_(_symbol=key) 
+            self._price_streams[key] = self._exchange._DWX_MTX_SUBSCRIBE_MARKETDATA_(_symbol=key)
+
         return self
-    """
+    
+
     def is_pair_tradable(self, trading_pair: 'TradingPair') -> bool:
-        
+        """Whether or not the specified trading pair is tradable on this
+        exchange.
+
+        Parameters
+        ----------
+        trading_pair : `TradingPair`
+            The trading pair to test the tradability of.
+
+        Returns
+        -------
+        bool
+            Whether or not the pair is tradable.
+        """
         return str(trading_pair) in self._price_streams.keys()
 
     def execute_order(self, order: 'Order', portfolio: 'Portfolio') -> None:
-        
+        """Execute an order on the exchange.
+
+        Parameters
+        ----------
+        order: `Order`
+            The order to execute.
+        portfolio : `Portfolio`
+            The portfolio to use.
+        """
         trade = self._service(
             order=order,
             cash_wallet=portfolio.get_wallet(self.id, order.pair.base),

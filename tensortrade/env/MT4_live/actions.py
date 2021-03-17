@@ -505,7 +505,7 @@ class SimpleOrders_mt4(TensorTradeActionScheme):
             _type = 2
         elif TradeSide.CLOSE:
             _action = "CLOSE"
-            _type = 3 ##??
+            _type = 0
 
         order = {'_action': _action,
                   '_type': _type,
